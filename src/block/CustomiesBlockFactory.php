@@ -154,12 +154,7 @@ final class CustomiesBlockFactory {
 		GlobalBlockStateHandlers::getSerializer()->map($block, $serializer);
 		GlobalBlockStateHandlers::getDeserializer()->map($identifier, $deserializer);
 
-		$addToCreative = $creativeInfo !== null;
-
 		$creativeInfo ??= CreativeInventoryInfo::DEFAULT();
-		$components->setTag("minecraft:creative_category", CompoundTag::create()
-			->setString("category", $creativeInfo->getCategory())
-			->setString("group", $creativeInfo->getGroup()));
 		$propertiesTag
 			->setTag("components",
 				$components->setTag("minecraft:creative_category", CompoundTag::create()
@@ -170,14 +165,8 @@ final class CustomiesBlockFactory {
 				->setString("group", $creativeInfo->getGroup() ?? ""))
 			->setInt("molangVersion", 1);
 
-		if($addToCreative){
-			CreativeInventory::getInstance()->add($block->asItem(), match($creativeInfo->getCategory()){
-				CreativeInventoryInfo::CATEGORY_CONSTRUCTION => CreativeCategory::CONSTRUCTION,
-				CreativeInventoryInfo::CATEGORY_ITEMS => CreativeCategory::ITEMS,
-				CreativeInventoryInfo::CATEGORY_NATURE => CreativeCategory::NATURE,
-				CreativeInventoryInfo::CATEGORY_EQUIPMENT => CreativeCategory::EQUIPMENT,
-				default => throw new AssumptionFailedError("Unknown category")
-			});
+		if($creativeInfo !== null){
+			CreativeInventory::getInstance()->add($block->asItem(), $creativeInfo->getPMCategory(), $creativeInfo->getPMGroup($block->asItem()));
 		}
 
 		$this->blockPaletteEntries[] = new BlockPaletteEntry($identifier, new CacheableNbt($propertiesTag));
