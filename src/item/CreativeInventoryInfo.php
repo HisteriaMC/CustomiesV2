@@ -109,6 +109,10 @@ final class CreativeInventoryInfo {
 		return $this->category;
 	}
 
+	/**
+	 * Returns the CreativeCategory equlivent of the category the item is part of.
+	 * @return CreativeCategory
+	 */
 	public function getPMCategory(): CreativeCategory{
 		return match($this->category){
 			CreativeInventoryInfo::CATEGORY_CONSTRUCTION => CreativeCategory::CONSTRUCTION,
@@ -139,6 +143,11 @@ final class CreativeInventoryInfo {
 		return $this->group;
 	}
 
+	/**
+	 * Returns the CreativeGroup equlivent of the group the item is part of.
+	 * @param Item $item
+	 * @return CreativeGroup
+	 */
 	public function getPMGroup(Item $item): CreativeGroup {
 		return new CreativeGroup(new Translatable($this->group), $item);
 	}

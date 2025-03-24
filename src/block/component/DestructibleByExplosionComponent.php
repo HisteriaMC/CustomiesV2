@@ -22,6 +22,6 @@ class DestructibleByExplosionComponent implements BlockComponent {
 
 	public function getValue(): CompoundTag {
 		return CompoundTag::create()
-			->setFloat("explosion_resistance", $this->explosionResistance);
+			->setFloat("value", $this->explosionResistance);
 	}
 }
