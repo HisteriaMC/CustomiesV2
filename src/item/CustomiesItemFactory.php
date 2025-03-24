@@ -3,24 +3,24 @@ declare(strict_types=1);
 
 namespace customiesdevs\customies\item;
 
+use Closure;
+use customiesdevs\customies\util\NBT;
 use InvalidArgumentException;
 use pocketmine\block\Block;
 use pocketmine\data\bedrock\item\BlockItemIdMap;
 use pocketmine\data\bedrock\item\SavedItemData;
-use pocketmine\inventory\CreativeCategory;
 use pocketmine\inventory\CreativeInventory;
 use pocketmine\item\Item;
-use pocketmine\item\ItemIdentifier;
-use pocketmine\item\ItemTypeIds;
 use pocketmine\item\StringToItemParser;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\network\mcpe\protocol\types\CacheableNbt;
 use pocketmine\network\mcpe\protocol\types\ItemTypeEntry;
 use pocketmine\utils\SingletonTrait;
-use pocketmine\utils\Utils;
 use pocketmine\world\format\io\GlobalItemDataHandlers;
 use ReflectionClass;
+use RuntimeException;
+
 use function array_values;
 
 final class CustomiesItemFactory {
@@ -55,29 +55,60 @@ final class CustomiesItemFactory {
 	 * item components if present.
 	 * @phpstan-param class-string $className
 	 */
-	public function registerItem(string $className, string $identifier, string $name, ?CreativeInventoryInfo $creativeInfo = null): void {
-		if($className !== Item::class) {
-			Utils::testValidInstance($className, Item::class);
+	public function registerItem(Closure $itemFunc, string $identifier, ?CreativeInventoryInfo $creativeInfo = null): void {
+		$item = $itemFunc();
+		if(!$item instanceof Item) {
+			throw new InvalidArgumentException("Class returned from closure is not a Item");
 		}
-
-		$itemId = ItemTypeIds::newId();
-		$item = new $className(new ItemIdentifier($itemId), $name);
+		$itemId = $item->getTypeId();
 
 		GlobalItemDataHandlers::getDeserializer()->map($identifier, fn() => clone $item);
 		GlobalItemDataHandlers::getSerializer()->map($item, fn() => new SavedItemData($identifier));
 
 		StringToItemParser::getInstance()->register($identifier, fn() => clone $item);
 
-		$nbt = ($componentBased = $item instanceof ItemComponents) ? $item->getComponents()
-			->setInt("id", $itemId)
-			->setString("name", $identifier) : CompoundTag::create();
-
-		$this->itemTableEntries[$identifier] = $entry = new ItemTypeEntry($identifier, $itemId, $componentBased, $componentBased ? 1 : 0, new CacheableNbt($nbt));
-		$this->registerCustomItemMapping($identifier, $itemId, $entry);
+		// This is where the components are added to the item
+		$componentBased = $item instanceof ItemComponents;
+		$nbt = $this->createItemNbt($item, $identifier, $itemId, $creativeInfo);
 
 		if($creativeInfo !== null){
 			CreativeInventory::getInstance()->add($item, $creativeInfo->getPMCategory(), $creativeInfo->getPMGroup($item));
+		}	
+
+		$this->itemTableEntries[$identifier] = $entry = new ItemTypeEntry($identifier, $itemId, $componentBased, $componentBased ? 1 : 0, new CacheableNbt($nbt));
+		$this->registerCustomItemMapping($identifier, $itemId, $entry);
+	}
+
+	/**
+	 * Creates the NBT data for the item.
+	 */
+	private function createItemNbt(Item $item, string $identifier, int $itemId, ?CreativeInventoryInfo $creativeInfo): CompoundTag {
+		$components = CompoundTag::create();
+		$properties = CompoundTag::create();
+
+		if ($item instanceof ItemComponents) {
+			foreach ($item->getComponents() as $component) {
+				$tag = NBT::getTagType($component->getValue());
+				if ($tag === null) {
+					throw new RuntimeException("Failed to get tag type for component " . $component->getName());
+				}
+				if ($component->isProperty()) {
+					$properties->setTag($component->getName(), $tag);
+					continue;
+				}
+				$components->setTag($component->getName(), $tag);
+			}
+			if ($creativeInfo !== null) {
+				$properties->setTag("creative_category", NBT::getTagType($creativeInfo->getNumericCategory()));
+				$properties->setTag("creative_group", NBT::getTagType($creativeInfo->getGroup()));
+			}
+			$components->setTag("item_properties", $properties);
+			return CompoundTag::create()
+				->setTag("components", $components)
+				->setInt("id", $itemId)
+				->setString("name", $identifier);
 		}
+		return CompoundTag::create();
 	}
 
 	/**
