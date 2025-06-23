@@ -104,7 +104,7 @@ final class CustomiesItemFactory {
 				$this->groups[$group->getName()->getText()] = $group;
 			}
 
-			$category = match ($creativeInfo->getCategory()) { //wait, can we add existing groups in different categories here?
+			$category = match ($creativeInfo->getCategory()) {
 				CreativeInventoryInfo::CATEGORY_CONSTRUCTION => CreativeCategory::CONSTRUCTION,
 				CreativeInventoryInfo::CATEGORY_ITEMS => CreativeCategory::ITEMS,
 				CreativeInventoryInfo::CATEGORY_NATURE => CreativeCategory::NATURE,
