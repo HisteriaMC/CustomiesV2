@@ -34,7 +34,6 @@ final class CustomiesItemFactory {
 	 * @var ItemTypeEntry[]
 	 */
 	private array $itemTableEntries = [];
-
 	private array $groups = [];
 
 	/**
