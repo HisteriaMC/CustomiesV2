@@ -2,11 +2,7 @@
 
 namespace customiesdevs\customies\item;
 
-use pocketmine\inventory\CreativeCategory;
-use pocketmine\inventory\CreativeGroup;
-use pocketmine\item\Item;
-use pocketmine\lang\Translatable;
-use pocketmine\utils\AssumptionFailedError;
+use pocketmine\inventory\CreativeInventory;
 
 final class CreativeInventoryInfo {
 
@@ -110,20 +106,6 @@ final class CreativeInventoryInfo {
 	}
 
 	/**
-	 * Returns the CreativeCategory equlivent of the category the item is part of.
-	 * @return CreativeCategory
-	 */
-	public function getPMCategory(): CreativeCategory{
-		return match($this->category){
-			CreativeInventoryInfo::CATEGORY_CONSTRUCTION => CreativeCategory::CONSTRUCTION,
-			CreativeInventoryInfo::CATEGORY_ITEMS => CreativeCategory::ITEMS,
-			CreativeInventoryInfo::CATEGORY_NATURE => CreativeCategory::NATURE,
-			CreativeInventoryInfo::CATEGORY_EQUIPMENT => CreativeCategory::EQUIPMENT,
-			default => throw new AssumptionFailedError("Unknown category")
-		};
-	}
-
-	/**
 	 * Returns the numeric representation of the category the item is part of.
 	 */
 	public function getNumericCategory(): int {
@@ -143,12 +125,4 @@ final class CreativeInventoryInfo {
 		return $this->group;
 	}
 
-	/**
-	 * Returns the CreativeGroup equlivent of the group the item is part of.
-	 * @param Item $item
-	 * @return CreativeGroup
-	 */
-	public function getPMGroup(Item $item): CreativeGroup {
-		return new CreativeGroup(new Translatable($this->group), $item);
-	}
 }

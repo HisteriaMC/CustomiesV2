@@ -9,13 +9,17 @@ use InvalidArgumentException;
 use pocketmine\block\Block;
 use pocketmine\data\bedrock\item\BlockItemIdMap;
 use pocketmine\data\bedrock\item\SavedItemData;
+use pocketmine\inventory\CreativeCategory;
+use pocketmine\inventory\CreativeGroup;
 use pocketmine\inventory\CreativeInventory;
 use pocketmine\item\Item;
 use pocketmine\item\StringToItemParser;
+use pocketmine\lang\Translatable;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\network\mcpe\protocol\types\CacheableNbt;
 use pocketmine\network\mcpe\protocol\types\ItemTypeEntry;
+use pocketmine\utils\AssumptionFailedError;
 use pocketmine\utils\SingletonTrait;
 use pocketmine\world\format\io\GlobalItemDataHandlers;
 use ReflectionClass;
@@ -31,6 +35,8 @@ final class CustomiesItemFactory {
 	 */
 	private array $itemTableEntries = [];
 
+	private array $groups = [];
+
 	/**
 	 * Get a custom item from its identifier. An exception will be thrown if the item is not registered.
 	 */
@@ -40,6 +46,18 @@ final class CustomiesItemFactory {
 			throw new InvalidArgumentException("Custom item " . $identifier . " is not registered");
 		}
 		return $item->setCount($amount);
+	}
+
+	private function loadGroups() : void {
+		if($this->groups !== []){
+			return;
+		}
+		foreach(CreativeInventory::getInstance()->getAllEntries() as $entry){
+			$group = $entry->getGroup();
+			if($group !== null){
+				$this->groups[$group->getName()->getText()] = $group;
+			}
+		}
 	}
 
 	/**
@@ -72,7 +90,29 @@ final class CustomiesItemFactory {
 		$nbt = $this->createItemNbt($item, $identifier, $itemId, $creativeInfo);
 
 		if($creativeInfo !== null){
-			CreativeInventory::getInstance()->add($item, $creativeInfo->getPMCategory(), $creativeInfo->getPMGroup($item));
+			$this->loadGroups();
+			if($creativeInfo->getCategory() === CreativeInventoryInfo::CATEGORY_ALL || $creativeInfo->getCategory() === CreativeInventoryInfo::CATEGORY_COMMANDS){
+				return;
+			}
+
+			$group = $this->groups[$creativeInfo->getGroup()] ?? ($creativeInfo->getGroup() !== "" && $creativeInfo->getGroup() !== CreativeInventoryInfo::NONE ? new CreativeGroup(
+				new Translatable($creativeInfo->getGroup()),
+				$item
+			) : null);
+
+			if($group !== null){
+				$this->groups[$group->getName()->getText()] = $group;
+			}
+
+			$category = match ($creativeInfo->getCategory()) { //wait, can we add existing groups in different categories here?
+				CreativeInventoryInfo::CATEGORY_CONSTRUCTION => CreativeCategory::CONSTRUCTION,
+				CreativeInventoryInfo::CATEGORY_ITEMS => CreativeCategory::ITEMS,
+				CreativeInventoryInfo::CATEGORY_NATURE => CreativeCategory::NATURE,
+				CreativeInventoryInfo::CATEGORY_EQUIPMENT => CreativeCategory::EQUIPMENT,
+				default => throw new AssumptionFailedError("Unknown category")
+			};
+
+			CreativeInventory::getInstance()->add($item, $category, $group);
 		}	
 
 		$this->itemTableEntries[$identifier] = $entry = new ItemTypeEntry($identifier, $itemId, $componentBased, $componentBased ? 1 : 0, new CacheableNbt($nbt));
