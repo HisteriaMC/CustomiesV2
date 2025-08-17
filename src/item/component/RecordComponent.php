@@ -15,7 +15,7 @@ final class RecordComponent implements ItemComponent {
 	 * @param float $duration Specifies duration of sound event in seconds, float value
 	 * @param string $soundEvent Sound event type: 13, cat, blocks, chirp, far, mall, mellohi, stal, strad, ward, 11, wait, pigstep, otherside, 5, relic
 	 */
-	public function __construct(int $comparatorSignal = 1, float $duration, string $soundEvent = "undefined") {
+	public function __construct(int $comparatorSignal, float $duration, string $soundEvent) {
 		$this->comparatorSignal = $comparatorSignal;
 		$this->duration = $duration;
 		$this->soundEvent = $soundEvent;
