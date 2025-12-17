@@ -8,6 +8,10 @@ use pocketmine\math\Vector3;
 
 class CollisionBoxComponent implements BlockComponent {
 
+	private const DEFAULT_ORIGIN = [-8, 0, -8];
+	private const DEFAULT_SIZE = [16, 8, 16];
+	private const NO_COLLISION_SIZE = [0.001, 0.001, 0.001];
+
 	private bool $enabled;
 	/** @var Box[] */
 	private array $boxes = [];
@@ -18,6 +22,28 @@ class CollisionBoxComponent implements BlockComponent {
 	 */
 	public function __construct(bool $enabled = true) {
 		$this->enabled = $enabled;
+		if($enabled){
+			$this->boxes[] = self::createDefaultBox();
+		}
+	}
+
+	private static function createDefaultBox(): Box {
+		return new Box(
+			new Vector3(...self::DEFAULT_ORIGIN),
+			new Vector3(...self::DEFAULT_SIZE)
+		);
+	}
+
+	private static function createNoCollisionBox(): Box {
+		return new Box(
+			new Vector3(...self::DEFAULT_ORIGIN),
+			new Vector3(...self::NO_COLLISION_SIZE)
+		);
+	}
+
+	public function setNoCollision(): self {
+		$this->boxes = [self::createNoCollisionBox()];
+		return $this;
 	}
 
 	/**
@@ -50,47 +76,46 @@ class CollisionBoxComponent implements BlockComponent {
 
 	public function getValue(): array {
 		$convertedBoxes = [];
-		foreach($this->boxes as $box) {
+		foreach($this->boxes as $box){
 			$convertedBoxes[] = $box->toNbtArray();
 		}
 		return [
+			"boxes" => $convertedBoxes,
 			"enabled" => $this->enabled ? 1 : 0,
-			"boxes" => $convertedBoxes
 		];
 	}
 
 	public static function fromJson(mixed $data): static {
-		// false or true
 		if(is_bool($data)) {
 			return new self($data);
 		}
-		
 		$component = new self(true);
-		$boxes = [];
-		
+		$component->boxes = [];
+		// No Collision
+		if(is_array($data) && ($data['enabled'] ?? false) === true){
+			return $component->setNoCollision();
+		}
 		// Array of boxes
 		if(is_array($data) && isset($data[0])) {
 			foreach($data as $box) {
-				$origin = $box['origin'] ?? [-8, 0, -8];
-				$size = $box['size'] ?? [16, 24, 16];
-				$boxes[] = new Box(
+				$origin = $box['origin'] ?? self::DEFAULT_ORIGIN;
+				$size = $box['size'] ?? self::DEFAULT_SIZE;
+				$component->addBox(new Box(
 					new Vector3($origin[0], $origin[1], $origin[2]),
 					new Vector3($size[0], $size[1], $size[2])
-				);
+				));
 			}
-			return $component->addBoxes($boxes);
+			return $component;
 		}
-		
 		// Single box object
 		if(is_array($data) && isset($data['origin'])) {
 			$origin = $data['origin'];
-			$size = $data['size'] ?? [16, 24, 16];
+			$size = $data['size'] ?? self::DEFAULT_SIZE;
 			return $component->addBox(new Box(
 				new Vector3($origin[0], $origin[1], $origin[2]),
 				new Vector3($size[0], $size[1], $size[2])
 			));
 		}
-		
 		return $component;
 	}
 }
