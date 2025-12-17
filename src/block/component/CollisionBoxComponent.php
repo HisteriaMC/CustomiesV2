@@ -22,9 +22,8 @@ class CollisionBoxComponent implements BlockComponent {
 	 */
 	public function __construct(bool $enabled = true) {
 		$this->enabled = $enabled;
-		if($enabled){
-			$this->boxes[] = self::createDefaultBox();
-		}
+		if(!$enabled) $this->boxes[] = self::createNoCollisionBox();
+		$this->boxes[] = self::createDefaultBox();
 	}
 
 	private static function createDefaultBox(): Box {
@@ -39,11 +38,6 @@ class CollisionBoxComponent implements BlockComponent {
 			new Vector3(...self::DEFAULT_ORIGIN),
 			new Vector3(...self::NO_COLLISION_SIZE)
 		);
-	}
-
-	public function setNoCollision(): self {
-		$this->boxes = [self::createNoCollisionBox()];
-		return $this;
 	}
 
 	/**
@@ -91,10 +85,6 @@ class CollisionBoxComponent implements BlockComponent {
 		}
 		$component = new self(true);
 		$component->boxes = [];
-		// No Collision
-		if(is_array($data) && ($data['enabled'] ?? false) === true){
-			return $component->setNoCollision();
-		}
 		// Array of boxes
 		if(is_array($data) && isset($data[0])) {
 			foreach($data as $box) {
