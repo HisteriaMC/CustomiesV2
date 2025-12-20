@@ -17,35 +17,35 @@ trait BlockTrait{
 	}
 
 	public function addPlacementDirection(
-		int $yRotationOffset = 0,
-		bool $facingDirection = true,
-		bool $cardinalDirection = false,
-		bool $cornerAndCardinalDirection = false
+		bool $cardinalDirection = true,
+		bool $facingDirection = false,
+		bool $cornerAndCardinalDirection = false,
+		float $yRotationOffset = 180.0
 	): CompoundTag {
 		$trait = CompoundTag::create()
-			->setTag("name", new StringTag("minecraft:placement_direction"))
+			->setTag("blocks_to_corner_with", new ListTag([], NBT::TAG_String))
 			->setTag("enabled_states", CompoundTag::create()
 				->setTag("cardinal_direction", new ByteTag($cardinalDirection ? 1 : 0))
 				->setTag("corner_and_cardinal_direction", new ByteTag($cornerAndCardinalDirection ? 1 : 0))
 				->setTag("facing_direction", new ByteTag($facingDirection ? 1 : 0))
 			)
-			->setTag("blocks_to_corner_with", new ListTag([], NBT::TAG_String))
-			->setTag("y_rotation_offset", new FloatTag((float) $yRotationOffset));
+			->setTag("name", new StringTag("minecraft:placement_direction"))
+			->setTag("y_rotation_offset", new FloatTag($yRotationOffset)); // Faces towards Player
 
 		return CompoundTag::create()
 			->setTag("traits", new ListTag([$trait], NBT::TAG_Compound));
 	}
 
 	public function addPlacementPosition(
-		bool $blockFace = false,
+		bool $blockFace = true,
 		bool $verticalHalf = false
 	): CompoundTag {
 		$trait = CompoundTag::create()
-			->setTag("name", new StringTag("minecraft:placement_position"))
 			->setTag("enabled_states", CompoundTag::create()
 				->setTag("block_face", new ByteTag($blockFace ? 1 : 0))
 				->setTag("vertical_half", new ByteTag($verticalHalf ? 1 : 0))
-			);
+			)
+			->setTag("name", new StringTag("minecraft:placement_position"));
 
 		return CompoundTag::create()
 			->setTag("traits", new ListTag([$trait], NBT::TAG_Compound));

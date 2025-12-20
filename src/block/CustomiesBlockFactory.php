@@ -6,6 +6,7 @@ namespace customiesdevs\customies\block;
 use Closure;
 use customiesdevs\customies\block\permutations\Permutable;
 use customiesdevs\customies\block\permutations\Permutation;
+use customiesdevs\customies\block\permutations\PermutationCache;
 use customiesdevs\customies\block\permutations\Permutations;
 use customiesdevs\customies\item\CreativeInventoryInfo;
 use customiesdevs\customies\item\CustomiesItemFactory;
@@ -149,12 +150,15 @@ final class CustomiesBlockFactory {
 
 		// The 'minecraft:on_player_placing' component is required for the client to predict block placement, making
 		// it a smoother experience for the end-user.
-		// Is this even used anymore??????
 		$components->setTag("minecraft:on_player_placing", CompoundTag::create());
+		// similar to ItemTags
+		// todo: json uses "tag:.."
+		// client/json: "tag:minecraft:is_axe_item_destructible": {},
+		// server: List<string><"minecraft:is_axe_item_destructible">
+		$propertiesTag->setTag("blockTags", new ListTag([]));
 		$propertiesTag->setTag("components", $components);
 		$propertiesTag->setInt("molangVersion", 13);
 
-		// TODO refactor this mess
 		if($block instanceof Permutable) {
 			$blockPropertyNames = $blockPropertyValues = $blockProperties = [];
 			foreach($block->getBlockProperties() as $blockProperty){
@@ -167,9 +171,7 @@ final class CustomiesBlockFactory {
 			$propertiesTag->setTag("permutations", new ListTag($permutations));
 			$propertiesTag->setTag("properties", new ListTag(array_reverse($blockProperties))); // fix client-side order
 
-			foreach(Permutations::getCartesianProduct($blockPropertyValues) as $meta => $permutations){
-				// We need to insert states for every possible permutation to allow for all blocks to be used and to
-				// keep in sync with the client's block palette.
+			foreach(PermutationCache::getCartesian($block) as $meta => $permutations){
 				$states = CompoundTag::create();
 				foreach($permutations as $i => $value){
 					$states->setTag($blockPropertyNames[$i], NBT::getTagType($value));

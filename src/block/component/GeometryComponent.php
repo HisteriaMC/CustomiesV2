@@ -43,7 +43,6 @@ class GeometryComponent implements BlockComponent {
 			"culling_layer" => $this->cullingLayer,
 			"identifier" => $this->identifier,
 			"uv_lock" => $this->uvLock,
-			// no reason as to why these 3 exist, but its what minecraft is outputting
 			"ignoreGeometryForIsSolid" => false,
 			"needsLegacyTopRotation" => false,
 			"useBlockTypeLightAbsorption" => false
@@ -54,8 +53,8 @@ class GeometryComponent implements BlockComponent {
 		return new self(
 			$data["identifier"] ?? "minecraft:geometry.full_block",
 			$data["bone_visibility"] ?? [],
-			$data["culling"] ?? "minecraft:culling_layer.undefined",
-			$data["culling_layer"] ?? "",
+			$data["culling"] ?? "",
+			$data["culling_layer"] ?? "minecraft:culling_layer.undefined",
 			$data["uv_lock"] ?? false
 		);
 	}

@@ -16,54 +16,47 @@ class TransformationComponent implements BlockComponent {
 	 */
 	public function __construct(
 		private readonly Vector3 $rotation = new Vector3(0, 0, 0),
-		private readonly Vector3 $rotationPivot = new Vector3(0, 0, 0),
-		private readonly Vector3 $scale = new Vector3(1, 1, 1),
-		private readonly Vector3 $scalePivot = new Vector3(0, 0, 0),
-		private readonly Vector3 $translation = new Vector3(0, 0, 0)
+		private readonly Vector3 $rotationPivot = new Vector3(0.0, 0.0, 0.0),
+		private readonly Vector3 $scale = new Vector3(1.0, 1.0, 1.0),
+		private readonly Vector3 $scalePivot = new Vector3(0.0, 0.0, 0.0),
+		private readonly Vector3 $translation = new Vector3(0.0, 0.0, 0.0)
 	) {}
+
+	private static function rotationToIndex(float $deg): int {
+		$deg = ((int) $deg) % 360;
+		if($deg < 0){
+			$deg += 360;
+		}
+		return match($deg){
+			0 => 0, // North
+			90 => 1, // West
+			180 => 2, // South
+			270, -90 => 3, // East
+			default => 0 // North
+		};
+	}
 
 	public function getName(): string {
 		return 'minecraft:transformation';
 	}
 
 	public function getValue(): array {
-		$rx = match ((int) $this->rotation->x) {
-			0 => 0,
-			90 => 1,
-			180 => 2,
-			270, -90 => 3,
-			default => 0
-		};
-		$ry = match ((int) $this->rotation->y) {
-			0 => 0,
-			90 => 1,
-			180 => 2,
-			270, -90 => 3,
-			default => 0
-		};
-		$rz = match ((int) $this->rotation->z) {
-			0 => 0,
-			90 => 1,
-			180 => 2,
-			270, -90 => 3,
-			default => 0
-		};
 		return [
-			"RX" => $rx,
-			"RY" => $ry,
-			"RZ" => $rz,
-			"RXP" => $this->rotationPivot->x,
-			"RYP" => $this->rotationPivot->y,
-			"RZP" => $this->rotationPivot->z,
-			"SX" => $this->scale->x,
-			"SY" => $this->scale->y,
-			"SZ" => $this->scale->z,
-			"SXP" => $this->scalePivot->x,
-			"SYP" => $this->scalePivot->y,
-			"SZP" => $this->scalePivot->z,
-			"TX" => $this->translation->x,
-			"TY" => $this->translation->y,
-			"TZ" => $this->translation->z,
+			"RX" => (int) self::rotationToIndex($this->rotation->x),
+			"RY" => (int) self::rotationToIndex($this->rotation->y),
+			"RZ" => (int) self::rotationToIndex($this->rotation->z),
+			"RXP" => (float) $this->rotationPivot->x,
+			"RYP" => (float) $this->rotationPivot->y,
+			"RZP" => (float) $this->rotationPivot->z,
+			"SX" => (float) $this->scale->x,
+			"SY" => (float) $this->scale->y,
+			"SZ" => (float) $this->scale->z,
+			"SXP" => (float) $this->scalePivot->x,
+			"SYP" => (float) $this->scalePivot->y,
+			"SZP" => (float) $this->scalePivot->z,
+			"TX" => (float) $this->translation->x,
+			"TY" => (float) $this->translation->y,
+			"TZ" => (float) $this->translation->z,
 			"hasJsonVersionBeforeValidation" => false
 		];
 	}

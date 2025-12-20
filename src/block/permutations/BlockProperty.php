@@ -10,7 +10,17 @@ use function array_map;
 
 final class BlockProperty {
 
-	public function __construct(private readonly string $name, private readonly array $values) { }
+	private array $values = [];
+
+	public function __construct(private readonly string $name, array $values = []){
+		if(empty($values)){
+			throw new \InvalidArgumentException("BlockProperty '{$name}' must have at least one value");
+		}
+		$this->values = array_values($values);
+		if(count($this->values) !== count(array_unique($this->values, SORT_REGULAR))){
+			throw new \InvalidArgumentException("BlockProperty '{$name}' contains duplicate values");
+		}
+	}
 
 	/**
 	 * Returns the name of the block property provided in the constructor.
@@ -32,7 +42,7 @@ final class BlockProperty {
 	public function toNBT(): CompoundTag {
 		$values = array_map(static fn($value) => NBT::getTagType($value), $this->values);
 		return CompoundTag::create()
-			->setString("name", $this->name)
-			->setTag("enum", new ListTag($values));
+			->setTag("enum", new ListTag($values))
+			->setString("name", $this->name);
 	}
 }

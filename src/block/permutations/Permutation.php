@@ -20,10 +20,12 @@ final class Permutation {
 	 * Returns the permutation with the provided component added to the current list of components.
 	 */
 	public function withComponent(BlockComponent $component) : self {
-		$value = ($component instanceof MaterialInstancesComponent) 
-			? $component->getValue(4)  // Use packed_bools = 4 for permutations
-			: $component->getValue();
-		$this->components->setTag($component->getName(), NBT::getTagType($value));
+		$value = ($component instanceof MaterialInstancesComponent) ? $component->getValue(4) : $component->getValue();
+		$tag = NBT::getTagType($value);
+		if($tag === null){
+			throw new \RuntimeException("Failed to get tag type for component " . $component->getName());
+		}
+		$this->components->setTag($component->getName(), $tag);
 		return $this;
 	}
 
@@ -32,7 +34,7 @@ final class Permutation {
 	 */
 	public function toNBT(): CompoundTag {
 		return CompoundTag::create()
-			->setString("condition", $this->condition)
-			->setTag("components", $this->components);
+			->setTag("components", $this->components)
+			->setString("condition", $this->condition);
 	}
 }
