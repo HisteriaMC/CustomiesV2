@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace customiesdevs\customies\block;
 
 use Closure;
+use customiesdevs\customies\block\component\BlockComponent;
 use customiesdevs\customies\block\permutations\Permutable;
 use customiesdevs\customies\block\permutations\Permutation;
 use customiesdevs\customies\block\permutations\Permutations;
@@ -12,6 +13,8 @@ use customiesdevs\customies\item\CustomiesItemFactory;
 use customiesdevs\customies\task\AsyncRegisterBlocksTask;
 use customiesdevs\customies\util\NBT;
 use InvalidArgumentException;
+use minicore\blocks\decoration\CustomFlower;
+use minicore\blocks\register\InterfaceBlock;
 use pocketmine\block\Block;
 use pocketmine\block\RuntimeBlockStateRegistry;
 use pocketmine\data\bedrock\block\BlockStateData;
@@ -51,6 +54,20 @@ final class CustomiesBlockFactory {
 	private array $customBlocks = [];
 	/** @var array<string, CreativeGroup> Map of group names to creative groups */
 	private array $groups = [];
+    //The following is from Histeria
+	/** @var array<string, BlockComponent[]> External components registered per identifier */
+	private array $externalComponents = [];
+
+	/**
+	 * Allows attaching block components to an identifier even if the block class itself
+	 * doesn't implement BlockComponents. Components will be merged during registration.
+	 * @param string $identifier
+	 * @param BlockComponent[] $components
+	 */
+	public function registerExternalComponents(string $identifier, array $components): void {
+		$this->externalComponents[$identifier] = $components;
+	}
+    //End from Histeria
 
 	/**
 	 * Adds a worker initialize hook to the async pool to sync the BlockFactory for every thread worker that is created.
@@ -140,6 +157,18 @@ final class CustomiesBlockFactory {
 				$components->setTag($component->getName(), $tag);
 			}
 		}
+        //The following is from Histeria
+		// Merge external components registered for this identifier
+		if(isset($this->externalComponents[$identifier])){
+			foreach ($this->externalComponents[$identifier] as $component){
+				$tag = NBT::getTagType($component->getValue());
+				if($tag === null) {
+					throw new RuntimeException("Failed to get tag type for component " . $component->getName());
+				}
+				$components->setTag($component->getName(), $tag);
+			}
+		}
+        //end from Histeria
 		if($creativeInfo !== null) {
 			$propertiesTag->setTag("menu_category", CompoundTag::create()
 				->setString("category", $creativeInfo->getCategory())
@@ -153,6 +182,21 @@ final class CustomiesBlockFactory {
 		$components->setTag("minecraft:on_player_placing", CompoundTag::create());
 		$propertiesTag->setTag("components", $components);
 		$propertiesTag->setInt("molangVersion", 13);
+
+        //From Histeria
+        if ($block instanceof InterfaceBlock) {
+            //Avoid placing blocks against blocks that implement InterfaceBlock
+            $components->setTag("minecraft:on_interact", CompoundTag::create());
+        }
+
+        if ($block instanceof CustomFlower) {
+            //I didn't manage to get it work properly but the only presence of this tag prevent placing in any case
+            //It's placed server side currently
+            //Possible fix: https://github.com/AID-LEARNING/SymplyPlugin/blob/7758dd827f1cd5886da81ded6b6ac2915cdf98e0/src/SenseiTarzan/SymplyPlugin/Behavior/blocks/component/PlacementFilterComponent.php
+            /** @see CustomFlower */
+            $components->setTag("minecraft:placement_filter", CompoundTag::create());
+        }
+        //End from Histeria
 
 		// TODO refactor this mess
 		if($block instanceof Permutable) {
@@ -230,6 +274,7 @@ final class CustomiesBlockFactory {
 			CreativeInventory::getInstance()->add($block->asItem(), $category, $group);
 		}
 
+        //if ($identifier == "histeria:big_pot") var_dump($components->toString());
 		$this->blockPaletteEntries[] = new BlockPaletteEntry($identifier, new CacheableNbt($propertiesTag));
 		$this->blockFuncs[$identifier] = [$blockFunc, $serializer, $deserializer];
 

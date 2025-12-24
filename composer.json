@@ -1,0 +1,13 @@
+{
+  "name": "histeriamc/customiesv2",
+  "description": "Customies fork of ambydia V2 version",
+  "type": "library",
+  "authors": [
+    {
+      "name": "dadodasyra"
+    }
+  ],
+  "require": {
+    "ext-pmmpthread": "*"
+  }
+}

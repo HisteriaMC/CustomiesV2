@@ -91,16 +91,16 @@ final class CustomiesItemFactory {
 	/**
 	 * Registers the item to the item factory and assigns it an ID. It also updates the required mappings and stores the
 	 * item components if present.
-	 * @param Closure $itemFunc A closure that returns an instance of the item to be registered
+	 * @param Item $item A closure that returns an instance of the item to be registered
 	 * @param string $identifier The string identifier for the item, usually in the format "namespace:item_name"
 	 * @param CreativeInventoryInfo|null $creativeInfo The creative inventory info for the item, if any
 	 * @throws InvalidArgumentException if the closure does not return an Item instance
 	 */
-	public function registerItem(Closure $itemFunc, string $identifier, ?CreativeInventoryInfo $creativeInfo = null): void {
-		$item = $itemFunc();
+	public function registerItem(Item $item, string $identifier, ?CreativeInventoryInfo $creativeInfo = null): void {
+/*		$item = $itemFunc();
 		if(!$item instanceof Item) {
 			throw new InvalidArgumentException("Class returned from closure is not a Item");
-		}
+		}*/
 		$itemId = $item->getTypeId();
 
 		GlobalItemDataHandlers::getDeserializer()->map($identifier, fn() => clone $item);
@@ -109,11 +109,12 @@ final class CustomiesItemFactory {
 
 		// This is where the components are added to the item
 		$componentBased = $item instanceof ItemComponents;
-		if($creativeInfo !== null){
+		//if($creativeInfo !== null){ disabled by histeria
+            $creativeInfo ??= CreativeInventoryInfo::DEFAULT(); //by histeria TODO: fix creative info input
 			$this->loadGroups();
-			if($creativeInfo->getCategory() === CreativeInventoryInfo::CATEGORY_ALL || $creativeInfo->getCategory() === CreativeInventoryInfo::CATEGORY_COMMANDS){
+			/*if($creativeInfo->getCategory() === CreativeInventoryInfo::CATEGORY_ALL || $creativeInfo->getCategory() === CreativeInventoryInfo::CATEGORY_COMMANDS){
 				return;
-			}
+			}*/
 			$group = $this->groups[$creativeInfo->getGroup()] ?? null;
 			if(
 				$group === null && $creativeInfo->getGroup() !== "" &&
@@ -127,10 +128,11 @@ final class CustomiesItemFactory {
 				CreativeInventoryInfo::CATEGORY_ITEMS => CreativeCategory::ITEMS,
 				CreativeInventoryInfo::CATEGORY_NATURE => CreativeCategory::NATURE,
 				CreativeInventoryInfo::CATEGORY_EQUIPMENT => CreativeCategory::EQUIPMENT,
+                CreativeInventoryInfo::CATEGORY_ALL => CreativeCategory::ITEMS,
 				default => throw new AssumptionFailedError("Unknown Creative Category")
 			};
 			CreativeInventory::getInstance()->add($item, $category, $group);
-		}
+		//}
 		$nbt = $this->createItemNbt($item, $identifier, $itemId, $creativeInfo);
 		$entry = new ItemTypeEntry(
 			$identifier,
