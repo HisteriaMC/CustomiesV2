@@ -166,6 +166,7 @@ final class CustomiesItemFactory {
 			->setTag('item_properties', $propertiesTag)
 			->setTag('item_tags', NBT::getTagType($tags))
 			->merge($componentsTag);
+		var_dump($components->toString());
 
 		return CompoundTag::create()
 			->setTag('components', $components)

@@ -5,6 +5,7 @@ namespace customiesdevs\customies\block;
 
 use Closure;
 use customiesdevs\customies\block\BlockComponents;
+use customiesdevs\customies\block\component\BlockComponent;
 use customiesdevs\customies\block\permutations\BlockPermutation;
 use customiesdevs\customies\block\permutations\BlockPermutations;
 use customiesdevs\customies\item\CreativeInventoryInfo;

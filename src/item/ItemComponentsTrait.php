@@ -11,14 +11,14 @@ trait ItemComponentsTrait {
 
 	/**
 	 * Registered item components indexed by component name.
-	 * 
+	 *
 	 * @var array<string, ItemComponent>
 	 */
 	private array $components = [];
 
 	/**
 	 * Adds a component to the item.
-	 * 
+	 *
 	 * @param ItemComponent $component The component to add
 	 */
 	public function addComponent(ItemComponent $component): void {
@@ -27,7 +27,7 @@ trait ItemComponentsTrait {
 
 	/**
 	 * Checks if the item has a component by its name.
-	 * 
+	 *
 	 * @param string $name The name of the component
 	 * @return bool True if the component exists, false otherwise
 	 */
@@ -37,7 +37,7 @@ trait ItemComponentsTrait {
 
 	/**
 	 * Retrieves a component by its name.
-	 * 
+	 *
 	 * @param string $name The name of the component
 	 * @return ItemComponent|null The component if found, null otherwise
 	 */
@@ -54,19 +54,19 @@ trait ItemComponentsTrait {
 		return $this->components;
 	}
 
-	/**
+	/** DISABLED BY HISTERIA SINCE IT HASNT BEEN IMPLEMENTED AND COLLIDES WITH ItemRegisteringTrait
 	 * @todo
 	 * Initializes common item components.
-	 * 
+	 *
 	 * @param string $texture The texture identifier for the icon
 	 * @param string $name The display name of the item
 	 */
-	protected function initComponent(string $texture, string $name): void {
+	/*protected function initComponent(string $texture, string $name): void {
 		// Only initialize if no components are set yet
 		if($this->getComponents() !== []){
 			return;
 		}
 		$this->addComponent(new IconComponent($texture));
 		$this->addComponent(new DisplayNameComponent($name));
-	}
+	}*/
 }
