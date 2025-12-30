@@ -28,8 +28,4 @@ final class SwingDurationComponent implements ItemComponent {
 	public function getPropertyMapping(): ?array {
 		return null;
 	}
-
-	public static function fromJson(mixed $data): static {
-		return new self($data ?? 0.3);
-	}
 }

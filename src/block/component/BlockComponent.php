@@ -16,12 +16,4 @@ interface BlockComponent {
 	 * @return mixed
 	 */
 	public function getValue(): mixed;
-
-	/**
-	 * Create a component instance from decoded JSON (block definition) data.
-	 * Implementations should be tolerant of missing keys and apply sensible defaults.
-	 * @param mixed $data The raw value found under the component identifier in a block JSON.
-	 * @return static
-	 */
-	public static function fromJson(mixed $data): static;
 }

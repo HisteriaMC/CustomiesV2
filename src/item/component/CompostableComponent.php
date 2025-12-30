@@ -28,8 +28,4 @@ final class CompostableComponent implements ItemComponent {
 	public function getPropertyMapping(): ?array {
 		return null;
 	}
-
-	public static function fromJson(mixed $data): static {
-		return new self($data["composting_chance"] ?? 0);
-	}
 }

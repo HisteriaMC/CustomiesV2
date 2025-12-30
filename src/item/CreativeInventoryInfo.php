@@ -2,7 +2,13 @@
 
 namespace customiesdevs\customies\item;
 
+use pocketmine\inventory\CreativeInventory;
+use pocketmine\inventory\CreativeGroup;
+
 final class CreativeInventoryInfo {
+
+	/** @var array<string, CreativeGroup>|null */
+	private static ?array $groups = null;
 
 	const NONE = "none";
 
@@ -106,6 +112,7 @@ final class CreativeInventoryInfo {
 
 	/**
 	 * Returns a default CreativeInventoryInfo instance (all category, no group)
+	 * @return self
 	 */
 	public static function DEFAULT(): self {
 		return new self(self::CATEGORY_ALL, self::NONE);
@@ -122,6 +129,7 @@ final class CreativeInventoryInfo {
 
 	/**
 	 * Returns the creative inventory category.
+	 * @return string
 	 */
 	public function getCategory(): string {
 		return $this->category;
@@ -130,6 +138,7 @@ final class CreativeInventoryInfo {
 	/**
 	 * Returns the numeric representation of the category.
 	 * 0 = all, 1 = construction, 2 = nature, 3 = equipment, 4 = items
+	 * @return int
 	 */
 	public function getNumericCategory(): int {
 		return match ($this->category) {
@@ -143,8 +152,56 @@ final class CreativeInventoryInfo {
 
 	/**
 	 * Returns the creative inventory group.
+	 * @return string
 	 */
 	public function getGroup(): string {
 		return $this->group;
+	}
+
+	/**
+	 * Loads all existing creative groups from the Creative Inventory.
+	 * @return void
+	 */
+	public static function load(): void {
+		if(self::$groups !== null){
+			return;
+		}
+		$groups = [];
+		foreach(CreativeInventory::getInstance()->getAllEntries() as $entry){
+			$group = $entry->getGroup();
+			if($group !== null){
+				$groups[$group->getName()->getText()] = $group;
+			}
+		}
+		self::$groups = $groups;
+	}
+
+	/**
+	 * Returns the CreativeGroup instance for the given name, or null if it does not exist.
+	 * @param string $name
+	 * @return CreativeGroup|null
+	 */
+	public static function get(string $name): ?CreativeGroup {
+		self::load();
+		return self::$groups[$name] ?? null;
+	}
+
+	/**
+	 * Sets a CreativeGroup instance in the internal list.
+	 * @param CreativeGroup $group
+	 * @return void
+	 */
+	public static function set(CreativeGroup $group): void {
+		self::load();
+		self::$groups[$group->getName()->getText()] = $group;
+	}
+
+	/**
+	 * Returns all loaded CreativeGroup instances.
+	 * @return CreativeGroup[]
+	 */
+	public static function all(): array {
+		self::load();
+		return self::$groups;
 	}
 }

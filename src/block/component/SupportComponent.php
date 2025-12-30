@@ -2,7 +2,7 @@
 
 namespace customiesdevs\customies\block\component;
 
-class SupportComponent implements BlockComponent {
+final class SupportComponent implements BlockComponent {
 
 	public const FENCE = "fence";
 	public const STAIRS = "stair";
@@ -24,9 +24,5 @@ class SupportComponent implements BlockComponent {
 		return [
 			"shape" => $this->shape
 		];
-	}
-
-	public static function fromJson(mixed $data): static {
-		return new self(is_array($data) ? ($data["shape"] ?? self::STAIRS) : self::STAIRS);
 	}
 }

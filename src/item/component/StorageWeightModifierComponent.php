@@ -28,8 +28,4 @@ final class StorageWeightModifierComponent implements ItemComponent {
 	public function getPropertyMapping(): ?array {
 		return null;
 	}
-
-	public static function fromJson(mixed $data): static {
-		return new self($data["weight_in_storage_item"] ?? 4);
-	}
 }

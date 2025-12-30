@@ -55,15 +55,4 @@ final class ThrowableComponent implements ItemComponent {
 	public function getPropertyMapping(): ?array {
 		return null;
 	}
-
-	public static function fromJson(mixed $data): static {
-		return new self(
-			$data["do_swing_animation"] ?? false, 
-			$data["launch_power_scale"] ?? 1.0, 
-			$data["max_draw_duration"] ?? 0.0, 
-			$data["max_launch_power"] ?? 1.0, 
-			$data["min_draw_duration"] ?? 0.0, 
-			$data["scale_power_by_draw_duration"] ?? false
-		);
-	}
 }

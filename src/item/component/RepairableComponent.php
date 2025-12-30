@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace customiesdevs\customies\item\component;
 
-use customiesdevs\customies\item\properties\RepairItems;
+use customiesdevs\customies\item\utils\RepairItems;
 
 final class RepairableComponent implements ItemComponent {
 
@@ -12,7 +12,7 @@ final class RepairableComponent implements ItemComponent {
 	 * @param RepairItems[] $repairItems List of repair item entries. Each entry needs to define a list of strings for items that can be used for the repair and an optional repair_amount for how much durability is gained.
 	 */
 	public function __construct(
-		private readonly array $repairItems,
+		private readonly array $repairItems = [],
 	) {}
 
 	public function getName(): string {
@@ -31,15 +31,5 @@ final class RepairableComponent implements ItemComponent {
 
 	public function getPropertyMapping(): ?array {
 		return null;
-	}
-
-	public static function fromJson(mixed $data): static {
-		$repairItems = [];
-		if(is_array($data["repair_items"] ?? null)) {
-			foreach($data["repair_items"] as $repairItem) {
-				$repairItems[] = RepairItems::fromArray($repairItem);
-			}
-		}
-		return new self($repairItems);
 	}
 }

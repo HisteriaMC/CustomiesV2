@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 namespace customiesdevs\customies\block\component;
 
-use customiesdevs\customies\block\properties\Box;
+use customiesdevs\customies\block\utils\Box;
 use pocketmine\math\Vector3;
 
-class CollisionBoxComponent implements BlockComponent {
+final class CollisionBoxComponent implements BlockComponent {
 
 	private bool $enabled;
 	/** @var Box[] */
@@ -18,6 +18,33 @@ class CollisionBoxComponent implements BlockComponent {
 	 */
 	public function __construct(bool $enabled = true) {
 		$this->enabled = $enabled;
+	}
+
+	public function getName(): string {
+		return 'minecraft:collision_box';
+	}
+
+	public function getValue(): array {
+		$boxes = [];
+		foreach($this->boxes as $box) {
+			$boxes[] = $box->toNbtArray();
+		}
+		//if no boxes are defined we add a default full block box
+		if(empty($boxes)){
+			$boxes[] = $this->enabled ? self::defaultCollisionBox()->toNbtArray() : self::noCollisionBox()->toNbtArray();
+		}
+		return [
+			"boxes" => $boxes,
+			"enabled" => $this->enabled
+		];
+	}
+
+	public static function defaultCollisionBox(): Box {
+		return new Box(new Vector3(-8, 0, -8), new Vector3(16, 8, 16));
+	}
+
+	public static function noCollisionBox(): Box {
+		return new Box(new Vector3(-8, 0, -8), new Vector3(0.0001, 0.0001, 0.0001));
 	}
 
 	/**
@@ -42,55 +69,5 @@ class CollisionBoxComponent implements BlockComponent {
 			$this->boxes[] = $box;
 		}
 		return $this;
-	}
-
-	public function getName(): string {
-		return 'minecraft:collision_box';
-	}
-
-	public function getValue(): array {
-		$convertedBoxes = [];
-		foreach($this->boxes as $box) {
-			$convertedBoxes[] = $box->toNbtArray();
-		}
-		return [
-			"enabled" => $this->enabled ? 1 : 0,
-			"boxes" => $convertedBoxes
-		];
-	}
-
-	public static function fromJson(mixed $data): static {
-		// false or true
-		if(is_bool($data)) {
-			return new self($data);
-		}
-		
-		$component = new self(true);
-		$boxes = [];
-		
-		// Array of boxes
-		if(is_array($data) && isset($data[0])) {
-			foreach($data as $box) {
-				$origin = $box['origin'] ?? [-8, 0, -8];
-				$size = $box['size'] ?? [16, 24, 16];
-				$boxes[] = new Box(
-					new Vector3($origin[0], $origin[1], $origin[2]),
-					new Vector3($size[0], $size[1], $size[2])
-				);
-			}
-			return $component->addBoxes($boxes);
-		}
-		
-		// Single box object
-		if(is_array($data) && isset($data['origin'])) {
-			$origin = $data['origin'];
-			$size = $data['size'] ?? [16, 24, 16];
-			return $component->addBox(new Box(
-				new Vector3($origin[0], $origin[1], $origin[2]),
-				new Vector3($size[0], $size[1], $size[2])
-			));
-		}
-		
-		return $component;
 	}
 }

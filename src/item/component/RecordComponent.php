@@ -36,8 +36,4 @@ final class RecordComponent implements ItemComponent {
 	public function getPropertyMapping(): ?array {
 		return null;
 	}
-
-	public static function fromJson(mixed $data): static {
-		return new self($data["comparator_signal"] ?? 1, $data["duration"] ?? 0.0, $data["sound_event"] ?? "");
-	}
 }

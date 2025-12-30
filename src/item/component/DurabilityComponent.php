@@ -38,8 +38,4 @@ final class DurabilityComponent implements ItemComponent {
 	public function getPropertyMapping(): ?array {
 		return null;
 	}
-
-	public static function fromJson(mixed $data): static {
-		return new self($data["max_durability"] ?? 0, $data["damage_chance"]["min"] ?? 100, $data["damage_chance"]["max"] ?? 100);
-	}
 }

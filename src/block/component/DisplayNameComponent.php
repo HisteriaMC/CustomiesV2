@@ -2,7 +2,7 @@
 
 namespace customiesdevs\customies\block\component;
 
-class DisplayNameComponent implements BlockComponent {
+final class DisplayNameComponent implements BlockComponent {
 
 	private string $displayName;
 
@@ -25,9 +25,5 @@ class DisplayNameComponent implements BlockComponent {
 		return [
 			"value" => $this->displayName
 		];
-	}
-
-	public static function fromJson(mixed $data): static {
-		return new self($data);
 	}
 }

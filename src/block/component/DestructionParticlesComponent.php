@@ -2,9 +2,9 @@
 
 namespace customiesdevs\customies\block\component;
 
-use customiesdevs\customies\block\properties\TintMethod;
+use customiesdevs\customies\block\utils\TintMethod;
 
-class DestructionParticlesComponent implements BlockComponent {
+final class DestructionParticlesComponent implements BlockComponent {
 
 	private int $particleCount;
 	private string $texture;
@@ -16,8 +16,12 @@ class DestructionParticlesComponent implements BlockComponent {
 	 * @param string $texture The texture name used for the particle.
 	 * @param TintMethod $tintMethod Tint multiplied to the color. Tint method logic varies, but often refers to the "rain" and "temperature" of the biome the block is placed in to compute the tint.
 	 */
-	public function __construct(int $particleCount = 100, string $texture = "", TintMethod $tintMethod = TintMethod::NONE) {
-		$this->particleCount = $particleCount;
+	public function __construct(
+		int $particleCount = 100,
+		string $texture = "",
+		TintMethod $tintMethod = TintMethod::NONE
+	) {
+		$this->particleCount = max(0, min(255, $particleCount));
 		$this->texture = $texture;
 		$this->tintMethod = $tintMethod;
 	}
@@ -32,13 +36,5 @@ class DestructionParticlesComponent implements BlockComponent {
 			"texture" => $this->texture,
 			"tint_method" => $this->tintMethod->value
 		];
-	}
-
-	public static function fromJson(mixed $data): static {
-		return new self(
-			$data["particle_count"] ?? 100,
-			$data["texture"] ?? "",
-			TintMethod::tryFrom($data["tint_method"] ?? "") ?? TintMethod::NONE
-		);
 	}
 }

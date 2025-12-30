@@ -5,6 +5,7 @@ namespace customiesdevs\customies\item\component;
 
 final class EnchantableComponent implements ItemComponent {
 
+	// Item Type
 	public const SLOT_NONE = "none";
 	public const SLOT_ALL = "all";
 	public const SLOT_HELMET = "armor_head";
@@ -78,9 +79,5 @@ final class EnchantableComponent implements ItemComponent {
 
 	public function getPropertyMapping(): ?array {
 		return ['enchantable_slot' => $this->slot, 'enchantable_value' => $this->value];
-	}
-
-	public static function fromJson(mixed $data): static {
-		return new self($data["slot"] ?? self::SLOT_ALL, $data["value"] ?? 1);
 	}
 }

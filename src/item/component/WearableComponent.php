@@ -52,12 +52,4 @@ final class WearableComponent implements ItemComponent {
 	public function getPropertyMapping(): ?array {
 		return null;
 	}
-
-	public static function fromJson(mixed $data): static {
-		return new self(
-			$data["slot"] ?? self::SLOT_WEAPON_MAIN_HAND, 
-			$data["protection"] ?? 0, 
-			$data["hides_player_location"] ?? false
-		);
-	}
 }

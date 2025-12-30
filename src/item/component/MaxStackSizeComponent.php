@@ -28,8 +28,4 @@ final class MaxStackSizeComponent implements ItemComponent {
 	public function getPropertyMapping(): ?array {
 		return ['max_stack_size' => $this->maxStackSize];
 	}
-
-	public static function fromJson(mixed $data): static {
-		return new self($data ?? 64);
-	}
 }

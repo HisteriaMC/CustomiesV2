@@ -2,7 +2,7 @@
 
 namespace customiesdevs\customies\block\component;
 
-class DestructibleByExplosionComponent implements BlockComponent {
+final class DestructibleByExplosionComponent implements BlockComponent {
 
 	private float $explosionResistance;
 
@@ -22,9 +22,5 @@ class DestructibleByExplosionComponent implements BlockComponent {
 		return [
 			"value" => $this->explosionResistance
 		];
-	}
-
-	public static function fromJson(mixed $data): static {
-		return new self($data["explosion_resistance"] ?? 0.0);
 	}
 }

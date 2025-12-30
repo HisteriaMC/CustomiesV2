@@ -8,8 +8,8 @@ use customiesdevs\customies\item\component\ItemComponent;
 interface ItemComponents {
 
 	/**
-	 * Add component adds a component to the item that can be returned in the getComponents() method to be sent over
-	 * the network.
+	 * Adds a component to the item
+	 * 
 	 * @param ItemComponent $component
 	 * @return void
 	 */
@@ -17,6 +17,7 @@ interface ItemComponents {
 
 	/**
 	 * Returns if the item has the component with the provided name.
+	 * 
 	 * @param string $name
 	 * @return bool
 	 */
@@ -24,14 +25,16 @@ interface ItemComponents {
 
 	/**
 	 * Returns the component with the provided name, or null if it does not exist.
+	 * 
 	 * @param string $name
 	 * @return ItemComponent|null
 	 */
 	public function getComponent(string $name): ?ItemComponent;
 
 	/**
-	 * Returns the fully-structured CompoundTag that can be sent to a client in the ItemComponentsPacket.
-	 * @return ItemComponent[]
+	 * Returns all components of the item.
+	 *
+	 * @return ItemComponent[] Array of all components
 	 */
 	public function getComponents(): array;
 }

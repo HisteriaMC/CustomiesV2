@@ -3,12 +3,12 @@ declare(strict_types=1);
 
 namespace customiesdevs\customies\item\component;
 
-use customiesdevs\customies\item\properties\ParticleType;
-use customiesdevs\customies\item\properties\SoundEvent;
+use customiesdevs\customies\item\utils\ParticleType;
+use customiesdevs\customies\item\utils\SoundEvent;
 
 final class DurabilitySensorComponent implements ItemComponent {
 
-	private array $durabilityThresholds;
+	private array $durabilityThresholds = [];
 
 	/**
 	 * Enables an item to emit effects when it receives damage. Because of this, the item also needs a `minecraft:durability` component.
@@ -57,17 +57,5 @@ final class DurabilitySensorComponent implements ItemComponent {
 			"sound_event" => $soundEvent
 		];
 		return $this;
-	}
-
-	public static function fromJson(mixed $data): static {
-		$thresholds = [];
-		foreach($data["durability_thresholds"] ?? [] as $threshold) {
-			$thresholds[] = [
-				"durability" => $threshold["durability"] ?? 0,
-				"particle_type" => isset($threshold["particle_type"]) ? ParticleType::tryFrom($threshold["particle_type"]) : null,
-				"sound_event" => isset($threshold["sound_event"]) ? SoundEvent::tryFrom($threshold["sound_event"]) : null
-			];
-		}
-		return new self($thresholds);
 	}
 }

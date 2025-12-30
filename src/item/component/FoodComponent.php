@@ -40,13 +40,4 @@ final class FoodComponent implements ItemComponent {
 	public function getPropertyMapping(): ?array {
 		return null;
 	}
-
-	public static function fromJson(mixed $data): static {
-		return new self(
-			$data["can_always_eat"] ?? false,
-			$data["nutrition"] ?? 0,
-			$data["saturation_modifier"] ?? 0.6,
-			$data["using_converts_to"] ?? ""
-		);
-	}
 }

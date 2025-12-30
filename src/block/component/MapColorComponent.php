@@ -2,7 +2,7 @@
 
 namespace customiesdevs\customies\block\component;
 
-class MapColorComponent implements BlockComponent {
+final class MapColorComponent implements BlockComponent {
 
 	private string|array $color;
 
@@ -22,9 +22,5 @@ class MapColorComponent implements BlockComponent {
 		return [
 			"color" => $this->color
 		];
-	}
-
-	public static function fromJson(mixed $data): static {
-		return new self($data);
 	}
 }

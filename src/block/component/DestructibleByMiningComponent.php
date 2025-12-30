@@ -2,7 +2,7 @@
 
 namespace customiesdevs\customies\block\component;
 
-class DestructibleByMiningComponent implements BlockComponent {
+final class DestructibleByMiningComponent implements BlockComponent {
 
 	private float $secondsToDestroy;
 
@@ -22,9 +22,5 @@ class DestructibleByMiningComponent implements BlockComponent {
 		return [
 			"value" => $this->secondsToDestroy
 		];
-	}
-
-	public static function fromJson(mixed $data): static {
-		return new self($data["seconds_to_destroy"] ?? 0.0);
 	}
 }

@@ -11,7 +11,7 @@ use function implode;
 final class DiggerComponent implements ItemComponent {
 
 	/** @var array<int, array{block: array<string, string>, speed: int}> */
-	private array $destroySpeeds;
+	private array $destroySpeeds = [];
 	private bool $useEfficiency;
 
 	/**
@@ -78,12 +78,5 @@ final class DiggerComponent implements ItemComponent {
 	 */
 	public function getDestroySpeeds(): array {
 		return $this->destroySpeeds;
-	}
-
-	public static function fromJson(mixed $data): static {
-		return new self(
-			$data["use_efficiency"] ?? false,
-			$data["destroy_speeds"] ?? []
-		);
 	}
 }

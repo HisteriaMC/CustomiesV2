@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace customiesdevs\customies\item;
 
 use Closure;
+use customiesdevs\customies\util\NBT;
 use InvalidArgumentException;
 use pocketmine\block\Block;
 use pocketmine\data\bedrock\item\BlockItemIdMap;
@@ -21,9 +22,7 @@ use pocketmine\network\mcpe\protocol\types\ItemTypeEntry;
 use pocketmine\utils\AssumptionFailedError;
 use pocketmine\utils\SingletonTrait;
 use pocketmine\world\format\io\GlobalItemDataHandlers;
-use customiesdevs\customies\util\NBT;
 use ReflectionClass;
-
 use function array_values;
 
 final class CustomiesItemFactory {
@@ -55,6 +54,7 @@ final class CustomiesItemFactory {
 
 	/**
 	 * Get a custom item from its identifier. An exception will be thrown if the item is not registered.
+	 *
 	 * @param string $identifier The string identifier for the item, usually in the format "namespace:item_name"
 	 * @param int $amount The amount of the item to be returned
 	 * @return Item The item instance
@@ -68,20 +68,9 @@ final class CustomiesItemFactory {
 		return $item->setCount($amount);
 	}
 
-	private function loadGroups() : void {
-		if($this->groups !== []){
-			return;
-		}
-		foreach(CreativeInventory::getInstance()->getAllEntries() as $entry){
-			$group = $entry->getGroup();
-			if($group !== null){
-				$this->groups[$group->getName()->getText()] = $group;
-			}
-		}
-	}
-
 	/**
 	 * Returns all registered item table entries.
+	 *
 	 * @return ItemTypeEntry[]
 	 */
 	public function getItemTableEntries(): array {
@@ -93,11 +82,15 @@ final class CustomiesItemFactory {
 	 * item components if present.
 	 * @param Item $item A closure that returns an instance of the item to be registered
 	 * @param string $identifier The string identifier for the item, usually in the format "namespace:item_name"
-	 * @param CreativeInventoryInfo|null $creativeInfo The creative inventory info for the item, if any
+	 * @param CreativeInventoryInfo $creativeInfo The creative inventory info for the item, if any
 	 * @throws InvalidArgumentException if the closure does not return an Item instance
 	 */
-	public function registerItem(Item $item, string $identifier, ?CreativeInventoryInfo $creativeInfo = null): void {
-/*		$item = $itemFunc();
+	public function registerItem(
+        Item $item,
+		string $identifier,
+		CreativeInventoryInfo $creativeInfo = new CreativeInventoryInfo(CreativeInventoryInfo::CATEGORY_EQUIPMENT)
+	): void {
+		/*$item = $itemFunc();
 		if(!$item instanceof Item) {
 			throw new InvalidArgumentException("Class returned from closure is not a Item");
 		}*/
@@ -107,32 +100,11 @@ final class CustomiesItemFactory {
 		GlobalItemDataHandlers::getSerializer()->map($item, fn() => new SavedItemData($identifier));
 		StringToItemParser::getInstance()->register($identifier, fn() => clone $item);
 
-		// This is where the components are added to the item
+		// Adding item components
 		$componentBased = $item instanceof ItemComponents;
-		//if($creativeInfo !== null){ disabled by histeria
-            $creativeInfo ??= CreativeInventoryInfo::DEFAULT(); //by histeria TODO: fix creative info input
-			$this->loadGroups();
-			/*if($creativeInfo->getCategory() === CreativeInventoryInfo::CATEGORY_ALL || $creativeInfo->getCategory() === CreativeInventoryInfo::CATEGORY_COMMANDS){
-				return;
-			}*/
-			$group = $this->groups[$creativeInfo->getGroup()] ?? null;
-			if(
-				$group === null && $creativeInfo->getGroup() !== "" &&
-				$creativeInfo->getGroup() !== CreativeInventoryInfo::NONE
-			){
-				$group = new CreativeGroup(new Translatable($creativeInfo->getGroup()), $item);
-				$this->groups[$group->getName()->getText()] = $group;
-			}
-			$category = match ($creativeInfo->getCategory()) {
-				CreativeInventoryInfo::CATEGORY_CONSTRUCTION => CreativeCategory::CONSTRUCTION,
-				CreativeInventoryInfo::CATEGORY_ITEMS => CreativeCategory::ITEMS,
-				CreativeInventoryInfo::CATEGORY_NATURE => CreativeCategory::NATURE,
-				CreativeInventoryInfo::CATEGORY_EQUIPMENT => CreativeCategory::EQUIPMENT,
-                CreativeInventoryInfo::CATEGORY_ALL => CreativeCategory::ITEMS,
-				default => throw new AssumptionFailedError("Unknown Creative Category")
-			};
-			CreativeInventory::getInstance()->add($item, $category, $group);
-		//}
+		// Registers the item to creative inventory
+		$this->registerCreativeInfo($item, $creativeInfo);
+		// Create the NBT data for the item
 		$nbt = $this->createItemNbt($item, $identifier, $itemId, $creativeInfo);
 		$entry = new ItemTypeEntry(
 			$identifier,
@@ -148,61 +120,50 @@ final class CustomiesItemFactory {
 	/**
 	 * Creates the CompoundTag for an item, including components and default properties.
 	 */
-	private function createItemNbt(Item $item, string $identifier, int $itemId, ?CreativeInventoryInfo $creativeInfo): CompoundTag {
+	private function createItemNbt(Item $item, string $identifier, int $itemId, CreativeInventoryInfo $creativeInfo): CompoundTag {
 		if(!($item instanceof ItemComponents)) {
 			return CompoundTag::create();
 		}
-
 		// Initialize item_properties with defaults
-		$properties = CompoundTag::create();
+		$propertiesTag = CompoundTag::create();
 		foreach(self::PROPERTY_DEFAULTS as $name => $default) {
-			$properties
+			$propertiesTag
 				->setTag($name, NBT::getTagType($default))
 				->setByte("hidden_in_commands", 2);
 		}
-
 		// Set creative info
-		if($creativeInfo !== null) {
-			$properties->setTag('creative_category', NBT::getTagType($creativeInfo->getNumericCategory()));
-			$properties->setTag('creative_group', NBT::getTagType($creativeInfo->getGroup()));
-		}
-
+		$propertiesTag->setTag('creative_category', NBT::getTagType($creativeInfo->getNumericCategory()));
+		$propertiesTag->setTag('creative_group', NBT::getTagType($creativeInfo->getGroup()));
 		$tags = [];
 		$componentsTag = CompoundTag::create();
-
 		// Process each component
 		foreach($item->getComponents() as $component) {
 			$name = $component->getName();
 			$value = $component->getValue();
 			$tag = NBT::getTagType($value);
-
 			// Icon goes to item_properties
 			if($name === 'minecraft:icon') {
-				$properties->setTag('minecraft:icon', $tag);
+				$propertiesTag->setTag('minecraft:icon', $tag);
 				continue;
 			}
-
 			// Tags go to item_tags
 			if($name === 'minecraft:tags') {
 				$tags = $value['tags'] ?? [];
 				$componentsTag->setTag($name, $tag);
 				continue;
 			}
-
 			// Components with property mappings also update item_properties
 			$mapping = $component->getPropertyMapping();
 			if($mapping !== null) {
 				foreach($mapping as $prop => $propValue) {
-					$properties->setTag($prop, NBT::getTagType($propValue));
+					$propertiesTag->setTag($prop, NBT::getTagType($propValue));
 				}
 			}
-
 			// All components go to components tag
 			$componentsTag->setTag($name, $tag);
 		}
-
 		$components = CompoundTag::create()
-			->setTag('item_properties', $properties)
+			->setTag('item_properties', $propertiesTag)
 			->setTag('item_tags', NBT::getTagType($tags))
 			->merge($componentsTag);
 
@@ -259,5 +220,29 @@ final class CustomiesItemFactory {
 		/** @var string[] $value */
 		$value = $itemToBlockId->getValue($blockItemIdMap);
 		$itemToBlockId->setValue($blockItemIdMap, $value + [$identifier => $identifier]);
+	}
+
+	/**
+	 * Registers the Item in the creative inventory based on the provided CreativeInventoryInfo.
+	 * @param Item $item The item to register
+	 * @param CreativeInventoryInfo $creativeInfo The creative inventory information
+	 */
+	private function registerCreativeInfo(
+		Item $item,
+		CreativeInventoryInfo $creativeInfo
+	): void {
+		$group = null;
+		if($creativeInfo->getGroup() !== CreativeInventoryInfo::NONE){
+			$group = CreativeInventoryInfo::get($creativeInfo->getGroup()) ?? new CreativeGroup(new Translatable($creativeInfo->getGroup()), $item);
+			CreativeInventoryInfo::set($group);
+		}
+		$category = match($creativeInfo->getCategory()){
+			CreativeInventoryInfo::CATEGORY_CONSTRUCTION => CreativeCategory::CONSTRUCTION,
+			CreativeInventoryInfo::CATEGORY_ITEMS => CreativeCategory::ITEMS,
+			CreativeInventoryInfo::CATEGORY_NATURE => CreativeCategory::NATURE,
+			CreativeInventoryInfo::CATEGORY_EQUIPMENT => CreativeCategory::EQUIPMENT,
+			default => throw new AssumptionFailedError("Unknown Creative Category"),
+		};
+		CreativeInventory::getInstance()->add($item, $category, $group);
 	}
 }

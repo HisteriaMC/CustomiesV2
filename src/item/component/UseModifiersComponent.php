@@ -48,13 +48,4 @@ final class UseModifiersComponent implements ItemComponent {
 	public function getPropertyMapping(): ?array {
 		return ['use_duration' => $this->useDuration];
 	}
-
-	public static function fromJson(mixed $data): static {
-		return new self(
-			(float) ($data["movement_modifier"] ?? 1.0),
-			(float) ($data["use_duration"] ?? 0.0),
-			(bool) ($data["emit_vibrations"] ?? false),
-			$data["start_sound"] ?? null
-		);
-	}
 }

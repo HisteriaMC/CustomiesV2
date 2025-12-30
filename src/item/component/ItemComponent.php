@@ -3,9 +3,6 @@ declare(strict_types=1);
 
 namespace customiesdevs\customies\item\component;
 
-/**
- * @template T
- */
 interface ItemComponent {
 
 	/**
@@ -25,12 +22,4 @@ interface ItemComponent {
 	 * @return array<string, string>|null [propertyName => propertyValue] or null if not a property
 	 */
 	public function getPropertyMapping(): ?array;
-
-	/**
-	 * Create a component instance from decoded JSON (item definition) data.
-	 * Implementations should be tolerant of missing keys and apply sensible defaults.
-	 * @param mixed $data The raw value found under the component identifier in an item JSON.
-	 * @return static
-	 */
-	public static function fromJson(mixed $data): static;
 }

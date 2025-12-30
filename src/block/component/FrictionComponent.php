@@ -2,7 +2,7 @@
 
 namespace customiesdevs\customies\block\component;
 
-class FrictionComponent implements BlockComponent {
+final class FrictionComponent implements BlockComponent {
 
 	private float $friction;
 
@@ -23,9 +23,5 @@ class FrictionComponent implements BlockComponent {
 		return [
 			"value" => $this->friction
 		];
-	}
-
-	public static function fromJson(mixed $data): static {
-		return new self($data);
 	}
 }

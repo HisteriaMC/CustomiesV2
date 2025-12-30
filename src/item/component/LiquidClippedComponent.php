@@ -28,8 +28,4 @@ final class LiquidClippedComponent implements ItemComponent {
 	public function getPropertyMapping(): ?array {
 		return ['liquid_clipped' => $this->liquidClipped];
 	}
-
-	public static function fromJson(mixed $data): static {
-		return new self($data ?? true);
-	}
 }

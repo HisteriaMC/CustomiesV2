@@ -9,7 +9,7 @@ final class DyeableComponent implements ItemComponent {
 	 * RGB color values as an array of three integers [R, G, B].
 	 * @var int[]
 	 */
-	private array $rgb;
+	private array $rgb = [];
 
 	/**
 	 * Allows the item to be dyed by cauldron water. Once dyed, the item will display the `dyed` texture defined in the `minecraft:icon` component rather than `default`.
@@ -60,12 +60,5 @@ final class DyeableComponent implements ItemComponent {
 	private static function rgbToHex(array $rgb): string {
 		[$r, $g, $b] = $rgb;
 		return sprintf("#%02x%02x%02x", $r, $g, $b);
-	}
-
-	public static function fromJson(mixed $data): static {
-		if(isset($data["default_color"]) && is_array($data["default_color"])){
-			return new self(self::rgbToHex($data["default_color"]));
-		}
-		return new self("#ffffff");
 	}
 }

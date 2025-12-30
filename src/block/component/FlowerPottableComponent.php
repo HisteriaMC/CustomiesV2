@@ -2,7 +2,7 @@
 
 namespace customiesdevs\customies\block\component;
 
-class FlowerPottableComponent implements BlockComponent {
+final class FlowerPottableComponent implements BlockComponent {
 
 	public function __construct() {}
 
@@ -12,9 +12,5 @@ class FlowerPottableComponent implements BlockComponent {
 
 	public function getValue(): array {
 		return [];
-	}
-
-	public static function fromJson(mixed $data): static {
-		return new self();
 	}
 }

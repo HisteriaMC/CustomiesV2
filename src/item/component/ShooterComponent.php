@@ -60,16 +60,4 @@ final class ShooterComponent implements ItemComponent {
 	public function getPropertyMapping(): ?array {
 		return null;
 	}
-
-	public static function fromJson(mixed $data): static {
-		return new self(
-			$data["ammunition"][0]["item"] ?? "",
-			$data["ammunition"][0]["use_offhand"] ?? false,
-			$data["ammunition"][0]["search_inventory"] ?? false,
-			$data["ammunition"][0]["use_in_creative"] ?? false,
-			$data["charge_on_draw"] ?? false,
-			$data["max_draw_duration"] ?? 0.0,
-			$data["scale_power_by_draw_duration"] ?? false
-		);
-	}
 }

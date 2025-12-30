@@ -2,22 +2,18 @@
 
 namespace customiesdevs\customies\block\component;
 
-use customiesdevs\customies\block\properties\Material;
+use customiesdevs\customies\block\utils\Material;
 
-class EmbeddedVisualComponent implements BlockComponent {
+final class EmbeddedVisualComponent implements BlockComponent {
 
+	/**
+	 * @param Material[] $materials
+	 */
 	public function __construct(
 		private readonly GeometryComponent $geometry, 
-		private readonly array $materials
+		private readonly array $materials = []
 	) {
-		if(count($materials) === 0){
-			throw new \InvalidArgumentException("At least one material must be defined");
-		}
-		foreach($materials as $material){
-			if(!$material instanceof Material){
-				throw new \InvalidArgumentException("All materials must be instances of ".Material::class);
-			}
-		}
+		Material::validMaterials($materials);
 	}
 
 	public function getName(): string {
@@ -38,16 +34,5 @@ class EmbeddedVisualComponent implements BlockComponent {
 			"geometry" => $this->geometry->getValue(),
 			"material_instances" => $materials
 		];
-	}
-
-	public static function fromJson(mixed $data): static {
-		$materials = [];
-		foreach($data as $target => $materialData){
-			$materials[] = Material::fromArray($target, $materialData);
-		}
-		return new self(
-			GeometryComponent::fromJson($data["geometry"] ?? []),
-			$materials
-		);
 	}
 }

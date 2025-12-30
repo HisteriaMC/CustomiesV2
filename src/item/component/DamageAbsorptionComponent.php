@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace customiesdevs\customies\item\component;
 
-use customiesdevs\customies\item\properties\DamageCause;
+use customiesdevs\customies\item\utils\DamageCause;
 
 final class DamageAbsorptionComponent implements ItemComponent {
 
@@ -11,7 +11,7 @@ final class DamageAbsorptionComponent implements ItemComponent {
 	 * List of damage causes that can be absorbed by the item.
 	 * @var DamageCause[] Must contain at least 1 item for meaningful effect.
 	 */
-	private array $absorbableCauses;
+	private array $absorbableCauses = [];
 
 	/**
 	 * It allows an item to absorb damage that would otherwise be dealt to its wearer.
@@ -50,20 +50,5 @@ final class DamageAbsorptionComponent implements ItemComponent {
 			$this->absorbableCauses[] = $cause;
 		}
 		return $this;
-	}
-
-	public static function fromJson(mixed $data): static {
-		$causes = [];
-		if(is_array($data["absorbable_causes"] ?? null)){
-			foreach($data["absorbable_causes"] as $cause){
-				if(is_string($cause)){
-					$enumCause = DamageCause::tryFrom($cause);
-					if($enumCause !== null){
-						$causes[] = $enumCause;
-					}
-				}
-			}
-		}
-		return new self($causes);
 	}
 }

@@ -34,12 +34,4 @@ final class SwingSoundsComponent implements ItemComponent {
 	public function getPropertyMapping(): ?array {
 		return null;
 	}
-
-	public static function fromJson(mixed $data): static {
-		return new self(
-			$data["attack_critical_hit"] ?? "attack.critical",
-			$data["attack_hit"] ?? "attack.strong",
-			$data["attack_miss"] ?? "attack.nodamage"
-		);
-	}
 }

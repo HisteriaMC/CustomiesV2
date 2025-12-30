@@ -2,7 +2,7 @@
 
 namespace customiesdevs\customies\block\component;
 
-class FlammableComponent implements BlockComponent {
+final class FlammableComponent implements BlockComponent {
 
 	private int $catchChanceModifier;
 	private int $destroyChanceModifier;
@@ -26,12 +26,5 @@ class FlammableComponent implements BlockComponent {
 			"catch_chance_modifier" => $this->catchChanceModifier,
 			"destroy_chance_modifier" => $this->destroyChanceModifier
 		];
-	}
-
-	public static function fromJson(mixed $data): static {
-		return new self(
-			$data["catch_chance_modifier"] ?? 5,
-			$data["destroy_chance_modifier"] ?? 20
-		);
 	}
 }

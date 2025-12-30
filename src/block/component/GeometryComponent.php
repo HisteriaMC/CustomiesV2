@@ -2,10 +2,10 @@
 
 namespace customiesdevs\customies\block\component;
 
-class GeometryComponent implements BlockComponent {
+final class GeometryComponent implements BlockComponent {
 
 	private string $identifier;
-	private array $boneVisibility;
+	private array $boneVisibility = [];
 	private string $culling;
 	private string $cullingLayer;
 	private array|bool $uvLock;
@@ -48,15 +48,5 @@ class GeometryComponent implements BlockComponent {
 			"needsLegacyTopRotation" => false,
 			"useBlockTypeLightAbsorption" => false
 		];
-	}
-
-	public static function fromJson(mixed $data): static {
-		return new self(
-			$data["identifier"] ?? "minecraft:geometry.full_block",
-			$data["bone_visibility"] ?? [],
-			$data["culling"] ?? "minecraft:culling_layer.undefined",
-			$data["culling_layer"] ?? "",
-			$data["uv_lock"] ?? false
-		);
 	}
 }

@@ -2,10 +2,10 @@
 
 namespace customiesdevs\customies\block\component;
 
-use customiesdevs\customies\block\properties\PlacementCondition;
+use customiesdevs\customies\block\utils\PlacementCondition;
 use InvalidArgumentException;
 
-class PlacementFilterComponent implements BlockComponent {
+final class PlacementFilterComponent implements BlockComponent {
 
 	/** @var PlacementCondition[] */
 	private array $conditions = [];
@@ -18,14 +18,6 @@ class PlacementFilterComponent implements BlockComponent {
 			throw new InvalidArgumentException("Placement filter may not exceed 64 conditions");
 		}
 		$this->conditions = $conditions;
-	}
-
-	public function addCondition(PlacementCondition $condition): self {
-		if(count($this->conditions) >= 64){
-			throw new InvalidArgumentException("Placement filter may not exceed 64 conditions");
-		}
-		$this->conditions[] = $condition;
-		return $this;
 	}
 
 	public function getName(): string {
@@ -41,11 +33,11 @@ class PlacementFilterComponent implements BlockComponent {
 		];
 	}
 
-	public static function fromJson(mixed $data): static {
-		$conditions = [];
-		foreach($data["conditions"] ?? [] as $condition){
-			$conditions[] = PlacementCondition::fromArray($condition);
+	public function addCondition(PlacementCondition $condition): self {
+		if(count($this->conditions) >= 64){
+			throw new InvalidArgumentException("Placement filter may not exceed 64 conditions");
 		}
-		return new self($conditions);
+		$this->conditions[] = $condition;
+		return $this;
 	}
 }

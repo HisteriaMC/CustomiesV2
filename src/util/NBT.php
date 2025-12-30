@@ -20,7 +20,7 @@ use function is_int;
 use function is_string;
 use function range;
 
-class NBT {
+final class NBT {
 
 	/**
 	 * Attempts to return the correct NBT Tag for the provided PHP value.
@@ -37,7 +37,7 @@ class NBT {
 	 *                  type cannot be converted.
 	 */
 	public static function getTagType($type): ?Tag {
-		return match (true) {
+		return match (true){
 			$type instanceof Tag => $type,
 			is_array($type) => self::getArrayTag($type),
 			is_bool($type) => new ByteTag($type ? 1 : 0),
@@ -57,8 +57,8 @@ class NBT {
 	 * @throws \InvalidArgumentException If any value cannot be converted to a Tag
 	 */
 	private static function getArrayTag(array $array): Tag {
-		if(array_keys($array) === range(0, count($array) - 1)) {
-			return new ListTag(array_map(function($value) {
+		if(array_keys($array) === range(0, count($array) - 1)){
+			return new ListTag(array_map(function($value): Tag {
 				$tag = self::getTagType($value);
 				if($tag === null) {
 					throw new \InvalidArgumentException("Cannot convert value of type " . get_debug_type($value) . " to NBT Tag");
