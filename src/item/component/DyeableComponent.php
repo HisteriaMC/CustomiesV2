@@ -50,15 +50,4 @@ final class DyeableComponent implements ItemComponent {
 			hexdec(substr($hex, 4, 2))
 		];
 	}
-
-	/**
-	 * Converts an RGB array to a hex color string.
-	 *
-	 * @param int[] $rgb Array of RGB values [R, G, B]
-	 * @return string Hex color string (e.g. "#175882")
-	 */
-	private static function rgbToHex(array $rgb): string {
-		[$r, $g, $b] = $rgb;
-		return sprintf("#%02x%02x%02x", $r, $g, $b);
-	}
 }

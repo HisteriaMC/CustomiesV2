@@ -9,9 +9,13 @@ final class FuelComponent implements ItemComponent {
 
 	/**
 	 * Allows this item to be used as fuel in a furnace to 'cook' other items.
-	 * @param float $duration Amount of time, in seconds, this fuel will cook items
+	 * @param float $duration Amount of time, in seconds, this fuel will cook items.
+	 * @throws \InvalidArgumentException if the fuel duration is less than 0.05
 	 */
 	public function __construct(float $duration) {
+		if($duration < 0.05){
+			throw new \InvalidArgumentException("Fuel duration must be at least 0.05 seconds, $duration given");
+		}
 		$this->duration = $duration;
 	}
 

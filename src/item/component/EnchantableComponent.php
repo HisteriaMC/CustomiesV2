@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace customiesdevs\customies\item\component;
 
+use pocketmine\nbt\tag\ByteTag;
+
 final class EnchantableComponent implements ItemComponent {
 
 	// Item Type
@@ -59,9 +61,13 @@ final class EnchantableComponent implements ItemComponent {
 	/**
 	 * Determines what enchantments can be applied to the item. Not all enchantments will have an effect on all item components.
 	 * @param string $slot Specifies which types of enchantments can be applied. For example, `bow` would allow this item to be enchanted as if it were a bow
-	 * @param int $value Specifies the value of the enchantment, Default is set to `1`
+	 * @param int $value Specifies the value of the enchantment.
+	 * @throws \InvalidArgumentException if the value is not between 0 and 32767.
 	 */
-	public function __construct(string $slot = self::SLOT_NONE, int $value = 1) {
+	public function __construct(string $slot, int $value) {
+		if($value < 0 || $value > 32767){
+			throw new \InvalidArgumentException("Enchantable value must be between 0 and 32767, $value given");
+		}
 		$this->slot = $slot;
 		$this->value = $value;
 	}
@@ -73,7 +79,7 @@ final class EnchantableComponent implements ItemComponent {
 	public function getValue(): array {
 		return [
 			"slot" => $this->slot,
-			"value" => $this->value
+			"value" => new ByteTag($this->value)
 		];
 	}
 

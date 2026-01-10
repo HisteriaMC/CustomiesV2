@@ -2,8 +2,13 @@
 
 namespace customiesdevs\customies\item;
 
-use pocketmine\inventory\CreativeInventory;
+use pocketmine\block\Block;
+use pocketmine\inventory\CreativeCategory;
 use pocketmine\inventory\CreativeGroup;
+use pocketmine\inventory\CreativeInventory;
+use pocketmine\item\Item;
+use pocketmine\lang\Translatable;
+use pocketmine\utils\AssumptionFailedError;
 
 final class CreativeInventoryInfo {
 
@@ -203,5 +208,38 @@ final class CreativeInventoryInfo {
 	public static function all(): array {
 		self::load();
 		return self::$groups;
+	}
+
+	/**
+	 * Registers the Item/Bloxk in the creative inventory based on the provided CreativeInventoryInfo.
+	 * @param Item|Block $type The item/block to register
+	 * @param CreativeInventoryInfo $creativeInfo The creative inventory information
+	 */
+	public static function registerCreativeInfo(
+		Item|Block $type,
+		CreativeInventoryInfo $creativeInfo
+	): void {
+		if(
+			$creativeInfo->getCategory() === self::CATEGORY_ALL || 
+			$creativeInfo->getCategory() === self::CATEGORY_COMMANDS
+		){
+			return;
+		}
+		$group = null;
+		if($creativeInfo->getGroup() !== CreativeInventoryInfo::NONE){
+			$group = CreativeInventoryInfo::get($creativeInfo->getGroup())
+			?? new CreativeGroup(
+				new Translatable($creativeInfo->getGroup()),
+				$type instanceof Block ? $type->asItem() : $type
+			);
+		}
+		$category = match($creativeInfo->getCategory()){
+			CreativeInventoryInfo::CATEGORY_CONSTRUCTION => CreativeCategory::CONSTRUCTION,
+			CreativeInventoryInfo::CATEGORY_ITEMS => CreativeCategory::ITEMS,
+			CreativeInventoryInfo::CATEGORY_NATURE => CreativeCategory::NATURE,
+			CreativeInventoryInfo::CATEGORY_EQUIPMENT => CreativeCategory::EQUIPMENT,
+			default => throw new AssumptionFailedError("Unknown Creative Category: " . $creativeInfo->getCategory()),
+		};
+		CreativeInventory::getInstance()->add($type instanceof Block ? $type->asItem() : $type, $category, $group);
 	}
 }

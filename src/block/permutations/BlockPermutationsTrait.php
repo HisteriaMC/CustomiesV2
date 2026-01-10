@@ -12,7 +12,7 @@ trait BlockPermutationsTrait {
 	 * Registered block permutations.
 	 * @var BlockPermutation[]
 	 */
-	private array $blockPermutations = [];
+	private array $blockPermutations;
 
 	/**
 	 * Adds a permutation to the block.

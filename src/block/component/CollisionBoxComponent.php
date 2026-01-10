@@ -3,8 +3,7 @@ declare(strict_types=1);
 
 namespace customiesdevs\customies\block\component;
 
-use customiesdevs\customies\block\utils\Box;
-use pocketmine\math\Vector3;
+use customiesdevs\customies\block\properties\Box;
 
 final class CollisionBoxComponent implements BlockComponent {
 
@@ -26,25 +25,21 @@ final class CollisionBoxComponent implements BlockComponent {
 
 	public function getValue(): array {
 		$boxes = [];
-		foreach($this->boxes as $box) {
+		foreach($this->boxes as $box){
 			$boxes[] = $box->toNbtArray();
 		}
-		//if no boxes are defined we add a default full block box
-		if(empty($boxes)){
-			$boxes[] = $this->enabled ? self::defaultCollisionBox()->toNbtArray() : self::noCollisionBox()->toNbtArray();
+		// if no boxes are defined we add a default full block box
+		if($this->enabled && empty($boxes)){
+			$boxes[] = Box::defaultBox()->toNbtArray();
+		}
+		// no collision
+		if(!$this->enabled){
+			$boxes[] = [];
 		}
 		return [
 			"boxes" => $boxes,
 			"enabled" => $this->enabled
 		];
-	}
-
-	public static function defaultCollisionBox(): Box {
-		return new Box(new Vector3(-8, 0, -8), new Vector3(16, 8, 16));
-	}
-
-	public static function noCollisionBox(): Box {
-		return new Box(new Vector3(-8, 0, -8), new Vector3(0.0001, 0.0001, 0.0001));
 	}
 
 	/**
@@ -54,6 +49,9 @@ final class CollisionBoxComponent implements BlockComponent {
 	 * @return $this
 	 */
 	public function addBox(Box $box): self {
+		if(count($this->boxes) === 1){
+			$this->boxes = [];
+		}
 		$this->boxes[] = $box;
 		return $this;
 	}
@@ -63,9 +61,16 @@ final class CollisionBoxComponent implements BlockComponent {
 	 * @param Box[] $boxes
 	 * An array of collision boxes to add.
 	 * @return $this
+	 * @throws \InvalidArgumentException If any element in the array is not an instance of Box.
 	 */
 	public function addBoxes(array $boxes): self {
-		foreach($boxes as $box) {
+		if(count($this->boxes) === 1){
+			$this->boxes = [];
+		}
+		foreach($boxes as $box){
+			if(!$box instanceof Box){
+				throw new \InvalidArgumentException("All boxes must be instances of " . Box::class);
+			}
 			$this->boxes[] = $box;
 		}
 		return $this;

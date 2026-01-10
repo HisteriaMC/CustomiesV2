@@ -11,7 +11,15 @@ final class CooldownComponent implements ItemComponent {
 	public const CATEGORY_WINDCHARGE = "wind_charge";
 	public const CATEGORY_CHORUS = "chorusfruit";
 
+	/** 
+	 * Causes the cooldown to start when the player attacks while holding the item and
+	 * prevents the item from being used to attack while the cooldown is active. 
+	 */
 	public const TYPE_ATTACK = "attack";
+	/** 
+	 * Causes the cooldown to start when the item is used and
+	 * prevents the item from being used while the cooldown is active.
+	 */
 	public const TYPE_USE = "use";
 
 	private string $category;

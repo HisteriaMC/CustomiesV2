@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace customiesdevs\customies\item\component;
 
-use customiesdevs\customies\item\utils\RepairItems;
+use customiesdevs\customies\item\properties\RepairItems;
 
 final class RepairableComponent implements ItemComponent {
 

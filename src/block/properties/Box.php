@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace customiesdevs\customies\block\utils;
+namespace customiesdevs\customies\block\properties;
 
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
@@ -119,5 +119,13 @@ final class Box {
 			$this->origin->x, $this->origin->y, $this->origin->z,
 			$max->x, $max->y, $max->z
 		);
+	}
+
+	/**
+	 * Returns a default full block collision box.
+	 * @return Box
+	 */
+	public static function defaultBox(): Box {
+		return new self(new Vector3(-8.0, 0.0, -8.0), new Vector3(16.0, 16.0, 16.0));
 	}
 }

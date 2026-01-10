@@ -1,6 +1,6 @@
 <?php
 
-namespace customiesdevs\customies\block\utils;
+namespace customiesdevs\customies\block\properties;
 
 enum RenderMethod: string {
 	case ALPHA_TEST = "alpha_test";

@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace customiesdevs\customies\item\component;
 
+use customiesdevs\customies\item\properties\SoundEvent;
+
 final class UseModifiersComponent implements ItemComponent {
 
 	private float $useDuration;
@@ -15,18 +17,18 @@ final class UseModifiersComponent implements ItemComponent {
 	 * @param float       $movementModifier Modifier applied to player movement speed
 	 * @param float       $useDuration       How long the item takes to use (seconds)
 	 * @param bool        $emitVibrations    Whether the item emits vibration events
-	 * @param string|null $startSound        Sound played when use starts
+	 * @param SoundEvent|string|null $startSound        Sound played when use starts
 	 */
 	public function __construct(
 		float $movementModifier = 1.0,
 		float $useDuration = 0.0,
 		bool $emitVibrations = false,
-		?string $startSound = null
+		SoundEvent|string|null $startSound = null
 	) {
 		$this->movementModifier = $movementModifier;
 		$this->useDuration = $useDuration;
 		$this->emitVibrations = $emitVibrations;
-		$this->startSound = $startSound;
+		$this->startSound = $startSound instanceof SoundEvent ? $startSound->value : $startSound;
 	}
 
 	public function getName(): string {
@@ -40,7 +42,7 @@ final class UseModifiersComponent implements ItemComponent {
 			"emit_vibrations" => $this->emitVibrations
 		];
 		if($this->startSound !== null){
-			$value["start_sound"] = $this->startSound;
+			$value['start_sound'] = $this->startSound;
 		}
 		return $value;
 	}

@@ -4,10 +4,10 @@ declare(strict_types=1);
 namespace customiesdevs\customies\block;
 
 use Closure;
-use customiesdevs\customies\block\BlockComponents;
-use customiesdevs\customies\block\component\BlockComponent;
+use customiesdevs\customies\block\component\BlockComponents;
 use customiesdevs\customies\block\permutations\BlockPermutation;
 use customiesdevs\customies\block\permutations\BlockPermutations;
+use customiesdevs\customies\block\permutations\Permutations;
 use customiesdevs\customies\item\CreativeInventoryInfo;
 use customiesdevs\customies\item\CustomiesItemFactory;
 use customiesdevs\customies\task\AsyncRegisterBlocksTask;
@@ -20,16 +20,11 @@ use pocketmine\block\RuntimeBlockStateRegistry;
 use pocketmine\data\bedrock\block\BlockStateData;
 use pocketmine\data\bedrock\block\convert\BlockStateReader;
 use pocketmine\data\bedrock\block\convert\BlockStateWriter;
-use pocketmine\inventory\CreativeCategory;
-use pocketmine\inventory\CreativeGroup;
-use pocketmine\inventory\CreativeInventory;
-use pocketmine\lang\Translatable;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\ListTag;
 use pocketmine\network\mcpe\protocol\types\BlockPaletteEntry;
 use pocketmine\network\mcpe\protocol\types\CacheableNbt;
 use pocketmine\Server;
-use pocketmine\utils\AssumptionFailedError;
 use pocketmine\utils\SingletonTrait;
 use pocketmine\world\format\io\GlobalBlockStateHandlers;
 use RuntimeException;
@@ -51,8 +46,7 @@ final class CustomiesBlockFactory {
 	private array $blockPaletteEntries = [];
 	/** @var array<string, Block> Map of block identifiers to block instances */
 	private array $customBlocks = [];
-	/** @var array<string, CreativeGroup> Map of group names to creative groups */
-	private array $groups = [];
+
     //The following is from Histeria
 	/** @var array<string, BlockComponent[]> External components registered per identifier */
 	private array $externalComponents = [];
@@ -108,8 +102,8 @@ final class CustomiesBlockFactory {
 	 * @param Closure $blockFunc A closure that returns a new instance of the block to register.
 	 * @param string $identifier The unique identifier for the block (e.g. "namespace:block_name").
 	 * @param CreativeInventoryInfo $creativeInfo Creative inventory information for the block. Default set to `Equipment` Category.
-	 * @param Closure|null $serializer Optional closure that takes a BlockStateWriter and returns it after writing the block state.
-	 * @param Closure|null $deserializer Optional closure that takes a BlockStateReader and returns a new instance of the block after reading the state.
+	 * @param (Closure(BlockStateWriter): Block)|null $serializer Optional closure that takes a BlockStateWriter and returns it after writing the block state.
+	 * @param (Closure(Block): BlockStateReader)|null $deserializer Optional closure that takes a BlockStateReader and returns a new instance of the block after reading the state.
 	 * @throws InvalidArgumentException If the blockFunc does not return a Block instance.
 	 */
 	public function registerBlock(
@@ -173,8 +167,42 @@ final class CustomiesBlockFactory {
 
 		// Adds States/Permutation to Block
 		if($block instanceof BlockPermutations){
-			// Register the States/Permutation to the block
-			$this->registerPermutations($block, $identifier, $nbtTag, $serializer, $deserializer);
+			$blockNames = $blockValues = $blockProperties = [];
+			foreach($block->getStates() as $state){
+				$blockNames[] = $state->getName();
+				$blockValues[] = $state->getValues();
+				$blockProperties[] = NBT::getTagType($state->getValue());
+			}
+			$nbtTag->setTag("permutations", new ListTag(array_map(
+				static fn(BlockPermutation $p) => NBT::getTagType($p->toArray()),
+				$block->getPermutations()
+			)));
+			$nbtTag->setTag("properties", new ListTag(array_reverse($blockProperties)));
+			foreach(Permutations::getCartesianProduct($blockValues) as $meta => $stateValues){
+				$stateTag = CompoundTag::create();
+				// We need to insert states for every possible permutation to allow for all blocks to be used and to
+				// keep in sync with the client's block palette.
+				foreach($stateValues as $i => $value){
+					$stateTag->setTag($blockNames[$i], NBT::getTagType($value));
+				}
+				BlockPalette::getInstance()->insertState(
+					CompoundTag::create()
+						->setString(BlockStateData::TAG_NAME, $identifier)
+						->setTag(BlockStateData::TAG_STATES, $stateTag),
+					$meta
+				);
+			}
+			$serializer ??= static function (BlockPermutations $b) use ($identifier): BlockStateWriter {
+				$writer = BlockStateWriter::create($identifier);
+				$b->serializeState($writer);
+				return $writer;
+			};
+			$deserializer ??= static function (BlockStateReader $in) use ($identifier): BlockPermutations {
+				$b = CustomiesBlockFactory::getInstance()->get($identifier);
+				assert($b instanceof BlockPermutations);
+				$b->deserializeState($in);
+				return $b;
+			};
 		}else{
 			// If a block does not contain any permutations we can just insert the one state.
 			BlockPalette::getInstance()->insertState(
@@ -182,19 +210,19 @@ final class CustomiesBlockFactory {
 					->setString(BlockStateData::TAG_NAME, $identifier)
 					->setTag(BlockStateData::TAG_STATES, CompoundTag::create())
 			);
-			$serializer ??= BlockStateWriter::create($identifier);
+			$serializer ??= static fn() => new BlockStateWriter($identifier);
 			$deserializer ??= static fn(BlockStateReader $in) => $block;
 		}
 		GlobalBlockStateHandlers::getSerializer()->map($block, $serializer);
 		GlobalBlockStateHandlers::getDeserializer()->map($identifier, $deserializer);
-        // The 'minecraft:on_player_placing' component is required for the client to predict block placement, making
+		// The 'minecraft:on_player_placing' component is required for the client to predict block placement, making
 		// it a smoother experience for the end-user.
 		$componentsTag->setTag("minecraft:on_player_placing", CompoundTag::create());
 		$nbtTag->setTag("blockTags", new ListTag());
 		$nbtTag->setTag("components", $componentsTag);
 		$nbtTag->setInt("molangVersion", 13);
 		// Registers the block to creative inventory
-		$this->registerCreativeInfo($block, $creativeInfo);
+		CreativeInventoryInfo::registerCreativeInfo($block, $creativeInfo);
 		$this->blockPaletteEntries[] = new BlockPaletteEntry($identifier, new CacheableNbt($nbtTag));
 		$this->blockFuncs[$identifier] = [$blockFunc, $serializer, $deserializer];
 		// 1.20.60 added a new "block_id" field which depends on the order of the block palette entries. Every time we
@@ -207,82 +235,5 @@ final class CustomiesBlockFactory {
 			$root->setTag("vanilla_block_data", CompoundTag::create()->setInt("block_id", 10000 + $i));
 			$this->blockPaletteEntries[$i] = new BlockPaletteEntry($entry->getName(), new CacheableNbt($root));
 		}
-	}
-
-	/**
-	 * Registers permutations and states for a BlockPermutations instance.
-	 * @param BlockPermutations $block The block instance
-	 * @param string $identifier The unique block identifier
-	 * @param CompoundTag $nbt The NBT tag to populate with permutation data
-	 * @param Closure|null &$serializer Reference to the serializer closure to set
-	 * @param Closure|null &$deserializer Reference to the deserializer closure to set
-	 */
-	private function registerPermutations(
-		BlockPermutations $block,
-		string $identifier,
-		CompoundTag $nbt,
-		?Closure &$serializer,
-		?Closure &$deserializer
-	): void {
-		$blockNames = $blockValues = $blockProperties = [];
-		foreach($block->getStates() as $state){
-			$blockNames[] = $state->getName();
-			$blockValues[] = $state->getValues();
-			$blockProperties[] = NBT::getTagType($state->getValue());
-		}
-		$nbt->setTag("permutations", new ListTag(array_map(
-			static fn(BlockPermutation $p) => NBT::getTagType($p->toArray()),
-			$block->getPermutations()
-		)));
-		$nbt->setTag("properties", new ListTag(array_reverse($blockProperties)));
-		foreach(BlockPermutation::getCartesianProduct($blockValues) as $meta => $stateValues){
-			$stateTag = CompoundTag::create();
-			// We need to insert states for every possible permutation to allow for all blocks to be used and to
-			// keep in sync with the client's block palette.
-			foreach($stateValues as $i => $value){
-				$stateTag->setTag($blockNames[$i], NBT::getTagType($value));
-			}
-			BlockPalette::getInstance()->insertState(
-				CompoundTag::create()
-					->setString(BlockStateData::TAG_NAME, $identifier)
-					->setTag(BlockStateData::TAG_STATES, $stateTag),
-				$meta
-			);
-		}
-		$serializer ??= static function (BlockPermutations $b) use ($identifier): BlockStateWriter {
-			$writer = BlockStateWriter::create($identifier);
-			$b->serializeState($writer);
-			return $writer;
-		};
-		$deserializer ??= static function (BlockStateReader $in) use ($identifier): BlockPermutations {
-			$b = CustomiesBlockFactory::getInstance()->get($identifier);
-			assert($b instanceof BlockPermutations);
-			$b->deserializeState($in);
-			return $b;
-		};
-	}
-
-	/**
-	 * Registers the block in the creative inventory based on the provided CreativeInventoryInfo.
-	 * @param Block $block The block to register
-	 * @param CreativeInventoryInfo $creativeInfo The creative inventory information
-	 */
-	private function registerCreativeInfo(
-		Block $block,
-		CreativeInventoryInfo $creativeInfo
-	): void {
-        $group = null;
-		if($creativeInfo->getGroup() !== CreativeInventoryInfo::NONE){
-			$group = CreativeInventoryInfo::get($creativeInfo->getGroup()) ?? new CreativeGroup(new Translatable($creativeInfo->getGroup()), $block->asItem());
-			CreativeInventoryInfo::set($group);
-		}
-		$category = match($creativeInfo->getCategory()){
-			CreativeInventoryInfo::CATEGORY_CONSTRUCTION => CreativeCategory::CONSTRUCTION,
-			CreativeInventoryInfo::CATEGORY_ITEMS => CreativeCategory::ITEMS,
-			CreativeInventoryInfo::CATEGORY_NATURE => CreativeCategory::NATURE,
-			CreativeInventoryInfo::CATEGORY_EQUIPMENT => CreativeCategory::EQUIPMENT,
-			default => throw new AssumptionFailedError("Unknown Creative Category"),
-		};
-		CreativeInventory::getInstance()->add($block->asItem(), $category, $group);
 	}
 }

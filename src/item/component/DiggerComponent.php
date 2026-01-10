@@ -10,16 +10,30 @@ use function implode;
 
 final class DiggerComponent implements ItemComponent {
 
-	/** @var array<int, array{block: array<string, string>, speed: int}> */
+	/**
+	 * @var array<int, array{
+	 *     block: array{
+	 *         name?: string,
+	 *         tags?: string
+	 *     },
+	 *     speed: int
+	 * }>
+	 */
 	private array $destroySpeeds = [];
 	private bool $useEfficiency;
 
 	/**
 	 * Allows a creator to determine how quickly an item can dig specific blocks.
 	 * @param bool $useEfficiency Determines whether the item should be impacted by the Efficiency enchantment.
-	 * @param array<int, array{block: array<string, string>, speed: int}> $destroySpeeds Optional array of destroy speeds.
+	 * @param array<int, array{
+	 *    block: array{
+	 * 	   name?: string,
+	 * 	   tags?: string
+	 *    },
+	 *   speed: int
+	 * }> $destroySpeeds An array of blocks/tags and their corresponding digging speeds.
 	 */
-	public function __construct(bool $useEfficiency, array $destroySpeeds = []) {
+	public function __construct(bool $useEfficiency = false, array $destroySpeeds = []) {
 		$this->useEfficiency = $useEfficiency;
 		$this->destroySpeeds = $destroySpeeds;
 	}
@@ -62,19 +76,36 @@ final class DiggerComponent implements ItemComponent {
 	 * @param string ...$tags A list of block tags
 	 */
 	public function withTags(int $speed, string ...$tags): self {
-		$query = implode(",", array_map(fn($tag) => "'" . $tag . "'", $tags));
+		$query = implode(", ", array_map(fn(string $tag) => "'" . $tag . "'", $tags));
 		$this->destroySpeeds[] = [
 			"block" => [
-				"tags" => "query.any_tag(" . $query . ")"
+				"tags" => "query.any_tag($query)"
 			],
 			"speed" => $speed
 		];
 		return $this;
 	}
 
+	/** @todo */
+	private function withStates(int $speed, array ...$states): self {
+		foreach($states as $state){
+			$stateArray = [];
+			foreach($state as $key => $value){
+				$stateArray[$key] = $value;
+			}
+			$this->destroySpeeds[] = [
+				"block" => [
+					"states" => $stateArray,
+				],
+				"speed" => $speed
+			];
+		}
+		return $this;
+	}
+
 	/**
 	 * Returns the array of destroy speeds.
-	 * @return array<int, array{block: array<string, string>, speed: int}>
+	 * @return array<int, array{block: array{name?: string, tags?: string}, speed: int}> The destroy speeds array.
 	 */
 	public function getDestroySpeeds(): array {
 		return $this->destroySpeeds;

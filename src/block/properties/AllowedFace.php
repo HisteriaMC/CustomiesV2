@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace customiesdevs\customies\block\utils;
+namespace customiesdevs\customies\block\properties;
 
 /**
  * Valid placement faces for minecraft:placement_filter

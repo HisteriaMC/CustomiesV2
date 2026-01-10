@@ -58,7 +58,7 @@ final class NBT {
 	 */
 	private static function getArrayTag(array $array): Tag {
 		if(array_keys($array) === range(0, count($array) - 1)){
-			return new ListTag(array_map(function($value): Tag {
+			return new ListTag(array_map(function($value){
 				$tag = self::getTagType($value);
 				if($tag === null) {
 					throw new \InvalidArgumentException("Cannot convert value of type " . get_debug_type($value) . " to NBT Tag");
@@ -75,5 +75,21 @@ final class NBT {
 			$tag->setTag((string) $key, $valueTag);
 		}
 		return $tag;
+	}
+
+	public static function sortCompoundTag(CompoundTag $tag, array $order): CompoundTag {
+		$sorted = CompoundTag::create();
+		foreach($order as $key){
+			$existing = $tag->getTag($key);
+			if($existing !== null){
+				$sorted->setTag($key, $existing);
+			}
+		}
+		foreach($tag->getValue() as $key => $value){
+			if($sorted->getTag((string) $key) === null){
+				$sorted->setTag((string) $key, $value);
+			}
+		}
+		return $sorted;
 	}
 }

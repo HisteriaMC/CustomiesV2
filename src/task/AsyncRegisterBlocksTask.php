@@ -18,7 +18,6 @@ final class AsyncRegisterBlocksTask extends AsyncTask {
 	private ThreadSafeArray $deserializer;
 
 	/**
-	 * Constructor.
 	 * @param Closure[] $blockFuncs Array of callbacks used for block registration
 	 * @phpstan-param array<string, array{
 	 *     (Closure(int): Block),

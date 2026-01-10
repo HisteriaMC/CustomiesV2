@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace customiesdevs\customies\block;
+namespace customiesdevs\customies\block\component;
 
 use customiesdevs\customies\block\component\BlockComponent;
 

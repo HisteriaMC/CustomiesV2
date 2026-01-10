@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace customiesdevs\customies\block\utils;
+namespace customiesdevs\customies\block\properties;
 
 /**
  * Describes a block reference for placement filtering.
@@ -19,25 +19,20 @@ final class BlockDescriptor {
 	private array $states = [];
 	/** @var string|null */
 	private ?string $tags;
-	/** @var int|null */
-	private ?int $tagsVersion;
 
 	/**
 	 * @param string|null $name Block identifier (e.g. minecraft:dirt)
 	 * @param array<int, array{state: string, type: int, value: mixed}> $states
 	 * @param string|null $tags Molang tag query
-	 * @param int|null $tagsVersion Molang version
 	 */
 	public function __construct(
 		?string $name = null,
 		array $states = [],
-		?string $tags = null,
-		?int $tagsVersion = null
+		?string $tags = null
 	) {
 		$this->name = $name;
 		$this->states = $states;
 		$this->tags = $tags;
-		$this->tagsVersion = $tagsVersion;
 	}
 
 	/**
@@ -53,9 +48,7 @@ final class BlockDescriptor {
 		}
 		if($this->tags !== null){
 			$data["tags"] = $this->tags;
-			if($this->tagsVersion !== null) {
-				$data["tags_version"] = $this->tagsVersion;
-			}
+			$data["tags_version"] = (int) 13;
 		}
 		return $data;
 	}
@@ -67,8 +60,7 @@ final class BlockDescriptor {
 		return new self(
 			$data["name"] ?? null,
 			$data["states"] ?? [],
-			$data["tags"] ?? null,
-			$data["tags_version"] ?? null
+			$data["tags"] ?? null
 		);
 	}
 }

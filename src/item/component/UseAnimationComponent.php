@@ -50,6 +50,6 @@ final class UseAnimationComponent implements ItemComponent {
 	}
 
 	public function getPropertyMapping(): ?array {
-		return ['use_animation' => self::STRING_TO_INT[$this->animation] ?? 0];
+		return ['use_animation' => (int) self::STRING_TO_INT[$this->animation] ?? 0];
 	}
 }

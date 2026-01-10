@@ -5,6 +5,9 @@ namespace customiesdevs\customies\item\component;
 
 final class ProjectileComponent implements ItemComponent {
 
+	public const ENTITY_ARROW = "minecraft:arrow<>";
+	public const ENTITY_WINDCHARGE = "minecraft:wind_charge_projectile<>";
+
 	private float $minimumCriticalPower;
 	private string $projectileEntity;
 
@@ -15,7 +18,7 @@ final class ProjectileComponent implements ItemComponent {
 	 * @param float $minimumCriticalPower Specifies how long a player must charge a projectile for it to critically hit
 	 * @param string $projectileEntity Which entity is to be fired as a projectile
 	 */
-	public function __construct(float $minimumCriticalPower, string $projectileEntity) {
+	public function __construct(float $minimumCriticalPower = 0, string $projectileEntity) {
 		$this->minimumCriticalPower = $minimumCriticalPower;
 		$this->projectileEntity = $projectileEntity;
 	}

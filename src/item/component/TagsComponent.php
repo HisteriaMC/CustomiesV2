@@ -5,13 +5,19 @@ namespace customiesdevs\customies\item\component;
 
 final class TagsComponent implements ItemComponent {
 
+	/** @var string[] */
 	private array $tags = [];
 
 	/**
 	 * Determines which tags are included on a given item.
-	 * @param array $tags An array that can contain multiple item tags.
+	 * @param string[] $tags An array that can contain multiple item tags.
 	 */
 	public function __construct(array $tags = []) {
+		foreach($tags as $tag){
+			if(!is_string($tag)){
+				throw new \InvalidArgumentException('All tags must be strings');
+			}
+		}
 		$this->tags = $tags;
 	}
 

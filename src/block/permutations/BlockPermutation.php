@@ -41,35 +41,4 @@ class BlockPermutation {
 			]
 		];
 	}
-
-	/**
-	 * Computes the Cartesian product of the provided arrays.
-	 * Each array in the input represents a set of possible values for a block property.
-	 * The result is an array of all possible combinations of these values.
-	 *
-	 * @param array[] $arrays An array of arrays, each containing possible values for a block property
-	 * @return array An array of arrays, each representing a unique combination of property values
-	 */
-	public static function getCartesianProduct(array $arrays): array {
-		if($arrays === []){
-			return [[]];
-		}
-		$result = [];
-		$count = count($arrays) - 1;
-		$combinations = array_product(array_map(static fn(array $array) => count($array), $arrays));
-		for($i = 0; $i < $combinations; $i++){
-			$row = [];
-			foreach($arrays as $index => $_){
-				$row[] = current($arrays[$index]);
-			}
-			$result[] = $row;
-			for($j = $count; $j >= 0; $j--){
-				if(next($arrays[$j]) !== false){
-					break;
-				}
-				reset($arrays[$j]);
-			}
-		}
-		return $result;
-	}
 }

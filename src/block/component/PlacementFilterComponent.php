@@ -2,7 +2,7 @@
 
 namespace customiesdevs\customies\block\component;
 
-use customiesdevs\customies\block\utils\PlacementCondition;
+use customiesdevs\customies\block\properties\PlacementCondition;
 use InvalidArgumentException;
 
 final class PlacementFilterComponent implements BlockComponent {

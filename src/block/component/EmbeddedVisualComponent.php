@@ -2,7 +2,7 @@
 
 namespace customiesdevs\customies\block\component;
 
-use customiesdevs\customies\block\utils\Material;
+use customiesdevs\customies\block\properties\Material;
 
 final class EmbeddedVisualComponent implements BlockComponent {
 

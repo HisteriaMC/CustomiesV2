@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace customiesdevs\customies\block;
+namespace customiesdevs\customies\block\component;
 
 use customiesdevs\customies\block\component\BlockComponent;
 use customiesdevs\customies\block\component\DisplayNameComponent;
 use customiesdevs\customies\block\component\GeometryComponent;
 use customiesdevs\customies\block\component\MaterialInstancesComponent;
-use customiesdevs\customies\block\utils\Material;
+use customiesdevs\customies\block\properties\Material;
 
 trait BlockComponentsTrait {
 	
@@ -15,7 +15,7 @@ trait BlockComponentsTrait {
 	 * Registered block components indexed by component name.
 	 * @var array<string, BlockComponent>
 	 */
-	private array $components = [];
+	private array $components;
 
 	/**
 	 * Adds or replaces a block component.
