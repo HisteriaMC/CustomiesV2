@@ -1,17 +1,14 @@
 <?php
 declare(strict_types=1);
 
-namespace customiesdevs\customies\block\states\templates;
+namespace customiesdevs\customies\block\permutations\traits;
 
 use customiesdevs\customies\block\component\TransformationComponent;
 use customiesdevs\customies\block\permutations\BlockPermutation;
-use customiesdevs\customies\block\permutations\BlockPermutations;
 use customiesdevs\customies\block\permutations\BlockPermutationsTrait;
 use customiesdevs\customies\block\states\BlockState;
 use pocketmine\block\Block;
 use pocketmine\block\utils\FacesOppositePlacingPlayerTrait;
-use pocketmine\block\utils\HorizontalFacing;
-use pocketmine\block\utils\HorizontalFacingTrait;
 use pocketmine\data\bedrock\block\convert\BlockStateReader;
 use pocketmine\data\bedrock\block\convert\BlockStateWriter;
 use pocketmine\item\Item;
@@ -21,10 +18,11 @@ use pocketmine\player\Player;
 use pocketmine\world\BlockTransaction;
 
 /**
- * - Used by carved pumpkins and furnaces
- * - 4 directions - 'north', 'south', 'east' and 'west'.
+ * Trait for blocks that face horizontally (4 cardinal directions).
+ * Used by carved pumpkins and furnaces
+ * 4 directions - 'north', 'south', 'east' and 'west'.
  */
-abstract class HorizontalFacingState extends Block implements BlockPermutations, HorizontalFacing {
+trait CardinalDirectionRotationTrait {
 	use BlockPermutationsTrait;
 	use HorizontalFacingTrait;
 	//use FacesOppositePlacingPlayerTrait; Histeria: we are reversed to the reversed vanilla behavior
@@ -72,12 +70,21 @@ abstract class HorizontalFacingState extends Block implements BlockPermutations,
 		return [$this->facing];
 	}
 
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null): bool {
+		$this->facing = match($face) {
+			Facing::NORTH => Facing::SOUTH,
+			Facing::SOUTH => Facing::NORTH,
+			Facing::WEST => Facing::EAST,
+			Facing::EAST => Facing::WEST,
+			default => Facing::opposite($player?->getHorizontalFacing() ?? Facing::NORTH)
+		};
+		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
+	}
+
 	public function serializeState(BlockStateWriter $out): void {
 		$out->writeString(
 			"minecraft:cardinal_direction",
-			match($this->facing){
-				Facing::DOWN => "down",
-				Facing::UP => "up",
+			match($this->facing) {
 				Facing::NORTH => "north",
 				Facing::SOUTH => "south",
 				Facing::WEST => "west",
@@ -87,7 +94,7 @@ abstract class HorizontalFacingState extends Block implements BlockPermutations,
 	}
 
 	public function deserializeState(BlockStateReader $in): void {
-		$this->facing = match($in->readString("minecraft:cardinal_direction")){
+		$this->facing = match($in->readString("minecraft:cardinal_direction")) {
 			"north" => Facing::NORTH,
 			"south" => Facing::SOUTH,
 			"west" => Facing::WEST,

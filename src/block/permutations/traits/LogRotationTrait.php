@@ -1,15 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace customiesdevs\customies\block\states\templates;
+namespace customiesdevs\customies\block\permutations\traits;
 
 use customiesdevs\customies\block\component\TransformationComponent;
 use customiesdevs\customies\block\permutations\BlockPermutation;
-use customiesdevs\customies\block\permutations\BlockPermutations;
 use customiesdevs\customies\block\permutations\BlockPermutationsTrait;
 use customiesdevs\customies\block\states\BlockState;
 use pocketmine\block\Block;
-use pocketmine\block\utils\PillarRotation;
 use pocketmine\block\utils\PillarRotationTrait;
 use pocketmine\data\bedrock\block\convert\BlockStateReader;
 use pocketmine\data\bedrock\block\convert\BlockStateWriter;
@@ -24,7 +22,7 @@ use pocketmine\world\BlockTransaction;
  * - Used by logs and basalt
  * - 3 axis-aligned directions
  */
-abstract class PillarRotationState extends Block implements BlockPermutations, PillarRotation {
+trait LogRotationTrait {
 	use BlockPermutationsTrait;
 	use PillarRotationTrait;
 
@@ -55,6 +53,16 @@ abstract class PillarRotationState extends Block implements BlockPermutations, P
 		return [$this->axis];
 	}
 
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null): bool {
+		$this->axis = match($face) {
+			0, 1 => Axis::Y,  // down, up
+			2, 3 => Axis::Z,  // north, south
+			4, 5 => Axis::X,  // west, east
+			default => Axis::Y
+		};
+		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
+	}
+
 	public function serializeState(BlockStateWriter $out): void {
 		$rotation = match($this->axis) {
 			Axis::X => "east",
@@ -72,15 +80,5 @@ abstract class PillarRotationState extends Block implements BlockPermutations, P
 			"north", "south" => Axis::Z,
 			default => Axis::Y
 		};
-	}
-
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null): bool {
-		$this->axis = match($face) {
-			0, 1 => Axis::Y,  // down, up
-			2, 3 => Axis::Z,  // north, south
-			4, 5 => Axis::X,  // west, east
-			default => Axis::Y
-		};
-		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 }

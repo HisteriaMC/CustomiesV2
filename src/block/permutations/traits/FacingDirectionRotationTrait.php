@@ -1,15 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace customiesdevs\customies\block\states\templates;
+namespace customiesdevs\customies\block\permutations\traits;
 
 use customiesdevs\customies\block\component\TransformationComponent;
 use customiesdevs\customies\block\permutations\BlockPermutation;
-use customiesdevs\customies\block\permutations\BlockPermutations;
 use customiesdevs\customies\block\permutations\BlockPermutationsTrait;
 use customiesdevs\customies\block\states\BlockState;
 use pocketmine\block\Block;
-use pocketmine\block\utils\AnyFacing;
 use pocketmine\block\utils\AnyFacingTrait;
 use pocketmine\data\bedrock\block\convert\BlockStateReader;
 use pocketmine\data\bedrock\block\convert\BlockStateWriter;
@@ -20,16 +18,17 @@ use pocketmine\player\Player;
 use pocketmine\world\BlockTransaction;
 
 /**
+ * Trait for blocks that can face any of 6 directions (facing_direction state).
  * - Used by dispensers and observers
  * - 6 directions - 'down', 'up', 'north', 'south', 'east' and 'west'.
  */
-abstract class AnyFacingState extends Block implements BlockPermutations, AnyFacing {
+trait FacingDirectionRotationTrait {
 	use BlockPermutationsTrait;
 	use AnyFacingTrait;
 
 	protected function initStates(): void {
 		$this->addState(new BlockState("minecraft:facing_direction",
-			["down", "up","north", "south", "east", "west"]
+			["down", "up", "north", "south", "east", "west"]
 		));
 	}
 
@@ -66,10 +65,15 @@ abstract class AnyFacingState extends Block implements BlockPermutations, AnyFac
 		return [$this->facing];
 	}
 
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null): bool {
+		$this->facing = Facing::opposite($face);
+		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
+	}
+
 	public function serializeState(BlockStateWriter $out): void {
 		$out->writeString(
 			"minecraft:facing_direction",
-			match($this->facing){
+			match ($this->facing) {
 				Facing::DOWN => "down",
 				Facing::UP => "up",
 				Facing::NORTH => "north",
@@ -81,7 +85,7 @@ abstract class AnyFacingState extends Block implements BlockPermutations, AnyFac
 	}
 
 	public function deserializeState(BlockStateReader $in): void {
-		$this->facing = match($in->readString("minecraft:facing_direction")){
+		$this->facing = match ($in->readString("minecraft:facing_direction")) {
 			"down" => Facing::UP,
 			"up" => Facing::DOWN,
 			"north" => Facing::NORTH,
@@ -89,10 +93,5 @@ abstract class AnyFacingState extends Block implements BlockPermutations, AnyFac
 			"west" => Facing::WEST,
 			"east" => Facing::EAST,
 		};
-	}
-
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null): bool {
-		$this->facing = Facing::opposite($face);
-		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 }
