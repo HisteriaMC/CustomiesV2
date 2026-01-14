@@ -2,42 +2,39 @@
 
 namespace customiesdevs\customies\block\permutations;
 
+use customiesdevs\customies\block\component\LightEmissionComponent;
 use customiesdevs\customies\block\component\MaterialInstancesComponent;
 use customiesdevs\customies\block\properties\Material;
 use customiesdevs\customies\block\properties\RenderMethod;
 use customiesdevs\customies\block\properties\TintMethod;
+use customiesdevs\customies\block\states\BlockState;
 use pocketmine\data\bedrock\block\convert\BlockStateReader;
 use pocketmine\data\bedrock\block\convert\BlockStateWriter;
 use pocketmine\data\runtime\RuntimeDataDescriber;
-use pocketmine\nbt\tag\CompoundTag;
 
 trait TogglePermutationTrait
 {
+	use BlockPermutationsTrait;
+
     private bool $isToggled = false;
 
-    public function getBlockProperties(): array {
-        return [
-            new BlockProperty("histeria:toggled", [false, true]),
-        ];
+    public function initStates(): void
+	{
+        $this->addState(new BlockState("histeria:toggled", [false, true]));
     }
 
-    public function getPermutations(): array
+    public function initPermutations(): void
     {
-        $permutations = [];
         foreach ([false, true] as $enabled) {
             $texture = $this->getBaseTexture() . ($enabled ? "_on" : "_off");
             $materials = $this->getTargetMaterials($texture);
 
-            $permutation = (new Permutation("q.block_state('histeria:toggled') == $enabled"))
-                ->withComponent(new MaterialInstancesComponent($materials));
-            $this->getAdditionalComponents($permutation, $enabled);
-            $permutations[] = $permutation;
+			$this->addPermutation(new BlockPermutation("q.block_state('histeria:toggled') == $enabled", new MaterialInstancesComponent($materials)));
+			$this->addPermutation(new BlockPermutation("q.block_state('histeria:toggled') == $enabled", new LightEmissionComponent($enabled ? 15 : 0)));
         }
-
-        return $permutations;
     }
 
-    public function getCurrentBlockProperties(): array
+    public function getCurrentStates(): array
     {
         return [$this->isToggled];
     }
@@ -71,15 +68,6 @@ trait TogglePermutationTrait
     public function getTargetMaterials($texture): array
     {
         return [new Material(Material::TARGET_ALL, $texture, RenderMethod::ALPHA_TEST, TintMethod::NONE, false, false)];
-    }
-
-    /**
-     * This is made to be override to add permutations
-     * @return void
-     */
-    public function getAdditionalComponents(Permutation $permutation, bool $toggled): void
-    {
-
     }
 
     abstract public function getBaseTexture(): string;
