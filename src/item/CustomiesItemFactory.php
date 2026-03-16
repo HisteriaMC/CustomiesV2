@@ -44,25 +44,26 @@ final class CustomiesItemFactory {
 
 	/** Order in which properties should appear in item_properties */
 	private const PROPERTY_ORDER = [
-		'allow_off_hand',
-		'can_destroy_in_creative',
-		'creative_category',
-		'creative_group',
-		'damage',
-		'enchantable_slot',
-		'enchantable_value',
-		'foil',
-		'frame_count',
-		'hand_equipped',
-		'hidden_in_commands',
-		'liquid_clipped',
-		'max_stack_size',
-		'minecraft:icon',
-		'mining_speed',
-		'should_despawn',
-		'stacked_by_data',
-		'use_animation',
-		'use_duration',
+		'allow_off_hand', // Byte
+		'can_destroy_in_creative', // Byte
+		'creative_category', // Int
+		'creative_group', // String
+		'damage', // Int
+		'enchantable_slot', // String
+		'enchantable_value', // Int
+		'foil', // Byte
+		'frame_count', // Int
+		'hand_equipped', // Byte
+		'hidden_in_commands', // Byte
+		'hover_text_color', // String
+		'liquid_clipped', // Byte
+		'max_stack_size', // Int
+		'minecraft:icon', // String
+		'mining_speed', // Float
+		'should_despawn', // Byte
+		'stacked_by_data', // Byte
+		'use_animation', // Int
+		'use_duration', // Int
 	];
 
 	/** @var ItemTypeEntry[] */
@@ -143,8 +144,7 @@ final class CustomiesItemFactory {
 		// Initialize item_properties with defaults
 		$propertiesTag = CompoundTag::create();
 		foreach(self::PROPERTY_DEFAULTS as $name => $default) {
-			$propertiesTag
-				->setTag($name, NBT::getTagType($default));
+			$propertiesTag->setTag($name, NBT::getTagType($default));
 		}
 		// Set creative info
 		$propertiesTag->setTag('creative_category', NBT::getTagType((int) $creativeInfo->getNumericCategory()));
@@ -165,7 +165,7 @@ final class CustomiesItemFactory {
 			// Tags go to item_tags
 			if($name === 'minecraft:tags') {
 				$tags = $value['tags'] ?? [];
-				$componentsTag->setTag($name, $tag);
+				$componentsTag->setTag('minecraft:tags', $tag);
 				continue;
 			}
 			// Components with property mappings also update item_properties

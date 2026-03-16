@@ -11,7 +11,6 @@ final class KineticWeaponComponent implements ItemComponent {
 	private float $damageModifier;
 	private float $damageMultiplier;
 	private int $delay;
-	private array $damageConditions;
 	private array $dismountConditions;
 	private float $hitboxMargin;
 	private array $knockbackConditions;
@@ -23,7 +22,6 @@ final class KineticWeaponComponent implements ItemComponent {
 	 * @param float $damageModifier A flat modifier added to the damage dealt by the weapon
 	 * @param float $damageMultiplier A multiplier applied to the damage dealt by the weapon
 	 * @param int $delay The delay between uses of the weapon, in ticks
-	 * @param array $damageConditions Conditions that must be met for the weapon to deal damage
 	 * @param array $dismountConditions Conditions that must be met for the weapon to dismount entities
 	 * @param float $hitboxMargin The margin added to the hitbox of the weapon
 	 * @param array $knockbackConditions Conditions that must be met for the weapon to apply knockback
@@ -34,11 +32,6 @@ final class KineticWeaponComponent implements ItemComponent {
 		float $damageModifier = 0.0,
 		float $damageMultiplier = 0.7,
 		int $delay = 15,
-		array $damageConditions = [
-			'min_speed' => 0.0,
-			'min_relative_speed' => 4.6,
-			'max_duration' => 200
-		],
 		array $dismountConditions = [
 			'min_speed' => 14.0,
 			'min_relative_speed' => 0.0,
@@ -57,7 +50,6 @@ final class KineticWeaponComponent implements ItemComponent {
 		$this->damageModifier = $damageModifier;
 		$this->damageMultiplier = $damageMultiplier;
 		$this->delay = $delay;
-		$this->damageConditions = self::validateConditions($damageConditions, 'damage_conditions');
 		$this->dismountConditions = self::validateConditions($dismountConditions, 'dismount_conditions');
 		$this->knockbackConditions = self::validateConditions($knockbackConditions, 'knockback_conditions');
 		$this->hitboxMargin = $hitboxMargin;
@@ -70,7 +62,6 @@ final class KineticWeaponComponent implements ItemComponent {
 		return [
 			"minecraft:kinetic_weapon" => [
 				"creative_reach" => self::rangeToArray($this->creativeReach),
-				"damage_conditions" => self::conditionsToArray($this->damageConditions),
 				"damage_modifier" => $this->damageModifier,
 				"damage_multiplier" => $this->damageMultiplier,
 				"delay" => new ShortTag($this->delay),

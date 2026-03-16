@@ -43,8 +43,9 @@ final class GeometryComponent implements BlockComponent {
 			"culling_layer" => $this->cullingLayer,
 			"identifier" => $this->identifier,
 			"uv_lock" => $this->uvLock,
-			// no reason as to why these 3 exist, but its what minecraft is outputting
+			// no reason as to why these 4 exist, but its what minecraft is outputting
 			"ignoreGeometryForIsSolid" => false,
+			"isV1Fullblock" => false,
 			"needsLegacyTopRotation" => false,
 			"useBlockTypeLightAbsorption" => false
 		];

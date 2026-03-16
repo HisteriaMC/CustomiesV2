@@ -12,6 +12,9 @@ final class SwingDurationComponent implements ItemComponent {
 	 * @param float $swingDuration Duration, in seconds, of the item's swing animation played when mining or attacking. Affects visuals only and does not impact attack frequency or other gameplay mechanics. Default value: 0.3.
 	 */
 	public function __construct(float $swingDuration = 0.3) {
+		if($swingDuration < 0){
+			throw new \InvalidArgumentException("Swing duration must be a positive number, $swingDuration given");
+		}
 		$this->swingDuration = $swingDuration;
 	}
 

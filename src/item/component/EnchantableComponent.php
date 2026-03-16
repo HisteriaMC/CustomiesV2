@@ -10,6 +10,7 @@ final class EnchantableComponent implements ItemComponent {
 	// Item Type
 	public const SLOT_NONE = "none";
 	public const SLOT_ALL = "all";
+	public const SLOT_ARMOR = "g_armor";
 	public const SLOT_HELMET = "armor_head";
 	public const SLOT_CHESTPLATE = "armor_torso";
 	public const SLOT_LEGGINGS = "armor_legs";
@@ -64,7 +65,7 @@ final class EnchantableComponent implements ItemComponent {
 	 * @param int $value Specifies the value of the enchantment.
 	 * @throws \InvalidArgumentException if the value is not between 0 and 32767.
 	 */
-	public function __construct(string $slot, int $value) {
+	public function __construct(string $slot = self::SLOT_NONE, int $value = 0) {
 		if($value < 0 || $value > 32767){
 			throw new \InvalidArgumentException("Enchantable value must be between 0 and 32767, $value given");
 		}
@@ -84,6 +85,6 @@ final class EnchantableComponent implements ItemComponent {
 	}
 
 	public function getPropertyMapping(): ?array {
-		return ['enchantable_slot' => $this->slot, 'enchantable_value' => $this->value];
+		return ['enchantable_slot' => (string) $this->slot, 'enchantable_value' => (int) $this->value];
 	}
 }

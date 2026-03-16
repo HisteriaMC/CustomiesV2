@@ -9,6 +9,12 @@ final class PiercingWeaponComponent implements ItemComponent {
 	private float $hitboxMargin;
 	private array $reach;
 
+	/**
+	 * The piercing weapon component defines the behavior of piercing weapons, which can hit multiple entities in a single attack.
+	 * @param array $creativeReach The reach of the weapon in creative mode
+	 * @param float $hitboxMargin The margin added to the hitbox of the weapon
+	 * @param array $reach The reach of the weapon in survival mode
+	 */
 	public function __construct(
 		array $creativeReach = ['min' => 2.0, 'max' => 7.5],
 		float $hitboxMargin = 0.25,
@@ -47,8 +53,8 @@ final class PiercingWeaponComponent implements ItemComponent {
 
 	private static function rangeToArray(array $range): array {
 		return [
-			"min" => $range['min'],
-			"max" => $range['max']
+			"min" => (float) $range['min'],
+			"max" => (float) $range['max']
 		];
 	}
 }

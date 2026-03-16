@@ -19,7 +19,7 @@ interface ItemComponent {
 
 	/**
 	 * Returns property mappings if this component maps to item_properties.
-	 * @return array<string, string>|null [propertyName => propertyValue] or null if not a property
+	 * @return array<string, mixed>|null [propertyName => propertyValue] or null if not a property
 	 */
 	public function getPropertyMapping(): ?array;
 }

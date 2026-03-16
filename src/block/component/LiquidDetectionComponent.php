@@ -4,6 +4,9 @@ namespace customiesdevs\customies\block\component;
 
 final class LiquidDetectionComponent implements BlockComponent {
 
+	/** The identifier for water liquid type. */
+	public const LIQUID_WATER = "water";
+
 	/** The block stops liquid flow (default behavior). */
 	public const BLOCKING = "blocking";
 	/** The block is destroyed completely when touched by liquid. */
@@ -25,6 +28,8 @@ final class LiquidDetectionComponent implements BlockComponent {
 	 * Valid values: "up", "down", "north", "south", "east", "west"
 	 */
 	private array $stopsLiquidFlowingFromDirection = [];
+	/** @var bool Whether the block uses liquid clipping. */
+	private bool $liquidClipping = false;
 
 	/**
 	 * Creates a new liquid detection rule.
@@ -44,15 +49,17 @@ final class LiquidDetectionComponent implements BlockComponent {
 	 * If empty, liquid can flow freely in all directions.
 	 */
 	public function __construct(
-		string $liquidType = "water",
+		string $liquidType = self::LIQUID_WATER,
 		bool $canContainLiquid = false,
 		string $onLiquidTouches = self::BLOCKING,
-		array $stopsLiquidFlowingFromDirection = []
+		array $stopsLiquidFlowingFromDirection = [],
+		bool $liquidClipping = false
 	) {
 		$this->liquidType = $liquidType;
 		$this->canContainLiquid = $canContainLiquid;
 		$this->onLiquidTouches = $onLiquidTouches;
 		$this->stopsLiquidFlowingFromDirection = $stopsLiquidFlowingFromDirection;
+		$this->liquidClipping = $liquidClipping;
 	}
 
 	public function getName(): string {
@@ -67,6 +74,7 @@ final class LiquidDetectionComponent implements BlockComponent {
 					"canContainLiquid" => $this->canContainLiquid,
 					"onLiquidTouches" => $this->onLiquidTouches,
 					"stopsLiquidFromDirection" => $this->stopsLiquidFlowingFromDirection,
+					"use_liquid_clipping" => $this->liquidClipping
 				]
 			]
 		];

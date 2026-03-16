@@ -12,7 +12,7 @@ final class FuelComponent implements ItemComponent {
 	 * @param float $duration Amount of time, in seconds, this fuel will cook items.
 	 * @throws \InvalidArgumentException if the fuel duration is less than 0.05
 	 */
-	public function __construct(float $duration) {
+	public function __construct(float $duration = 0.05) {
 		if($duration < 0.05){
 			throw new \InvalidArgumentException("Fuel duration must be at least 0.05 seconds, $duration given");
 		}

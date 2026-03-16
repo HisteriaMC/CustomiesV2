@@ -28,7 +28,7 @@ final class UseModifiersComponent implements ItemComponent {
 		$this->movementModifier = $movementModifier;
 		$this->useDuration = $useDuration;
 		$this->emitVibrations = $emitVibrations;
-		$this->startSound = $startSound instanceof SoundEvent ? $startSound->value : $startSound;
+		$this->startSound = $startSound instanceof SoundEvent ? (string) $startSound->value : $startSound;
 	}
 
 	public function getName(): string {
@@ -48,6 +48,6 @@ final class UseModifiersComponent implements ItemComponent {
 	}
 
 	public function getPropertyMapping(): ?array {
-		return ['use_duration' => $this->useDuration];
+		return ['use_duration' => (float) $this->useDuration];
 	}
 }

@@ -20,7 +20,7 @@ final class DestructibleByMiningComponent implements BlockComponent {
 	private array $itemSpecificSpeeds = [];
 
 	/**
-	 * Describes the destructible by mining properties for this block. If set to true, the block will take the default number of seconds to destroy. If set to false, this block is indestructible by mining. If the component is omitted, the block will take the default number of seconds to destroy.
+	 * Describes the destructible by mining properties for this block.
 	 * @param float $secondsToDestroy Sets the number of seconds it takes to destroy the block with base equipment. Greater numbers result in greater mining times.
 	 */
 	public function __construct(float $secondsToDestroy = 0.0) {

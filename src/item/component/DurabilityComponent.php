@@ -37,8 +37,8 @@ final class DurabilityComponent implements ItemComponent {
 	public function getValue(): array {
 		return [
 			"damage_chance" => [
-				"min" => $this->minDamageChance,
-				"max" => $this->maxDamageChance
+				"max" => $this->maxDamageChance,
+				"min" => $this->minDamageChance
 			],
 			"max_durability" => $this->maxDurability
 		];

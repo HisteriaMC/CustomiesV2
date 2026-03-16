@@ -40,6 +40,28 @@ class BlockState {
 	}
 
 	/**
+	 * Sets the current value of the state property.
+	 * Validates that the value is within the allowed values array.
+	 * @param mixed $value The value to set (must be in $this->values)
+	 * @throws \InvalidArgumentException if the value is not allowed
+	 */
+	public function setCurrentValue(mixed $value): self {
+		if(!in_array($value, $this->values, true)){
+			throw new \InvalidArgumentException("Invalid value '$value' for state '{$this->name}'. Allowed values: " . implode(", ", $this->values));
+		}
+		$this->currentValue = $value;
+		return $this;
+	}
+
+	/**
+	 * Gets the current value of the state property.
+	 * @return mixed
+	 */
+	public function getCurrentValue(): mixed {
+		return $this->currentValue;
+	}
+
+	/**
 	 * Returns the NBT value definition for client (enum + name).
 	 * @return array
 	 */
