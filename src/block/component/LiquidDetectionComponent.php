@@ -2,6 +2,8 @@
 
 namespace customiesdevs\customies\block\component;
 
+use pocketmine\nbt\tag\ByteTag;
+
 final class LiquidDetectionComponent implements BlockComponent {
 
 	/** The identifier for water liquid type. */
@@ -32,10 +34,10 @@ final class LiquidDetectionComponent implements BlockComponent {
 	private bool $liquidClipping = false;
 
 	/**
-	 * Creates a new liquid detection rule.
-	 * @param string $liquidType
 	 * The liquid type this rule applies to. Defaults to `"water"`.
 	 * @param bool $canContainLiquid
+	 * Creates a new liquid detection rule.
+	 * @param string $liquidType
 	 * Whether the block can contain the liquid (e.g. waterlogging).
 	 * @param string $onLiquidTouches
 	 * How the block reacts when liquid touches it.
@@ -49,14 +51,14 @@ final class LiquidDetectionComponent implements BlockComponent {
 	 * If empty, liquid can flow freely in all directions.
 	 */
 	public function __construct(
-		string $liquidType = self::LIQUID_WATER,
 		bool $canContainLiquid = false,
+		string $liquidType = self::LIQUID_WATER,
 		string $onLiquidTouches = self::BLOCKING,
 		array $stopsLiquidFlowingFromDirection = [],
 		bool $liquidClipping = false
 	) {
-		$this->liquidType = $liquidType;
 		$this->canContainLiquid = $canContainLiquid;
+		$this->liquidType = $liquidType;
 		$this->onLiquidTouches = $onLiquidTouches;
 		$this->stopsLiquidFlowingFromDirection = $stopsLiquidFlowingFromDirection;
 		$this->liquidClipping = $liquidClipping;
@@ -70,13 +72,31 @@ final class LiquidDetectionComponent implements BlockComponent {
 		return [
 			"detectionRules" => [
 				[
-					"liquidType" => $this->liquidType,
 					"canContainLiquid" => $this->canContainLiquid,
+					"liquidType" => $this->liquidType,
 					"onLiquidTouches" => $this->onLiquidTouches,
-					"stopsLiquidFromDirection" => $this->stopsLiquidFlowingFromDirection,
+					"stopsLiquidFromDirection" => new ByteTag($this->directionToMask($this->stopsLiquidFlowingFromDirection)),
 					"use_liquid_clipping" => $this->liquidClipping
 				]
 			]
 		];
+	}
+
+	private function directionToMask(array $directions): int {
+		$mask = 0;
+		$map = [
+			"down" => 1,
+			"up" => 2,
+			"north" => 4,
+			"south" => 8,
+			"west" => 16,
+			"east" => 32
+		];
+		foreach($directions as $dir){
+			if(isset($map[$dir])){
+				$mask |= $map[$dir];
+			}
+		}
+		return $mask;
 	}
 }

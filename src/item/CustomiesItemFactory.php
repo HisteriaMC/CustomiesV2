@@ -99,7 +99,7 @@ final class CustomiesItemFactory {
 	 * item components if present.
 	 * @param Item $item A closure that returns an instance of the item to be registered
 	 * @param string $identifier The string identifier for the item, usually in the format "namespace:item_name"
-	 * @param CreativeInventoryInfo $creativeInfo The creative inventory info for the item, if any
+	 * @param CreativeInventoryInfo $creativeInfo Creative inventory information for the item. Default set to `Equipment` Category.
 	 * @throws InvalidArgumentException if the closure does not return an Item instance
 	 */
 	public function registerItem(

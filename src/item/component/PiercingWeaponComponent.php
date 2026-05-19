@@ -5,8 +5,11 @@ namespace customiesdevs\customies\item\component;
 
 final class PiercingWeaponComponent implements ItemComponent {
 
+	/** @var array The reach of the weapon in creative mode */
 	private array $creativeReach;
+	/** @var float The margin added to the hitbox of the weapon */
 	private float $hitboxMargin;
+	/** @var array The reach of the weapon in survival mode */
 	private array $reach;
 
 	/**
@@ -16,9 +19,9 @@ final class PiercingWeaponComponent implements ItemComponent {
 	 * @param array $reach The reach of the weapon in survival mode
 	 */
 	public function __construct(
-		array $creativeReach = ['min' => 2.0, 'max' => 7.5],
+		array $creativeReach = ['max' => 7.5, 'min' => 2.0],
 		float $hitboxMargin = 0.25,
-		array $reach = ['min' => 2.0, 'max' => 4.5]
+		array $reach = ['max' => 4.5, 'min' => 2.0]
 	) {
 		$this->creativeReach = self::validateRange($creativeReach, 'creative_reach');
 		$this->reach = self::validateRange($reach, 'reach');
@@ -32,7 +35,7 @@ final class PiercingWeaponComponent implements ItemComponent {
 	public function getValue(): array {
 		return [
 			"creative_reach" => self::rangeToArray($this->creativeReach),
-			"hitbox_margin" => $this->hitboxMargin,
+			"hitbox_margin" => (float) $this->hitboxMargin,
 			"reach" => self::rangeToArray($this->reach)
 		];
 	}
@@ -42,19 +45,19 @@ final class PiercingWeaponComponent implements ItemComponent {
 	}
 
 	private static function validateRange(array $range, string $name): array {
-		if(!isset($range['min'], $range['max'])){
+		if(!isset($range['max'], $range['min'])){
 			throw new \InvalidArgumentException("$name must contain min and max values");
 		}
 		return [
-			'min' => (float) $range['min'],
-			'max' => (float) $range['max']
+			'max' => (float) $range['max'],
+			'min' => (float) $range['min']
 		];
 	}
 
 	private static function rangeToArray(array $range): array {
 		return [
-			"min" => (float) $range['min'],
-			"max" => (float) $range['max']
+			"max" => (float) $range['max'],
+			"min" => (float) $range['min']
 		];
 	}
 }

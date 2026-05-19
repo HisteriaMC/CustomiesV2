@@ -9,6 +9,7 @@ use customiesdevs\customies\block\permutations\BlockPermutationsTrait;
 use customiesdevs\customies\block\states\BlockState;
 use minicore\MiniCore;
 use pocketmine\block\Block;
+use pocketmine\block\utils\HorizontalFacingTrait;
 use pocketmine\block\utils\FacesOppositePlacingPlayerTrait;
 use pocketmine\data\bedrock\block\BlockStateDeserializeException;
 use pocketmine\data\bedrock\block\convert\BlockStateReader;
@@ -26,7 +27,7 @@ use pocketmine\world\BlockTransaction;
  */
 trait CardinalDirectionRotationTrait {
 	use BlockPermutationsTrait;
-	//use FacesOppositePlacingPlayerTrait; Histeria: we are reversed to the reversed vanilla behavior
+	//use HorizontalFacingTrait; Histeria: we are reversed to the reversed vanilla behavior
 
 	protected function initStates(): void {
 		$this->addState(new BlockState("minecraft:cardinal_direction",
@@ -60,14 +61,9 @@ trait CardinalDirectionRotationTrait {
 	}
 
 	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null): bool {
-		/*$this->facing = match($face) {
-			Facing::NORTH => Facing::SOUTH,
-			Facing::SOUTH => Facing::NORTH,
-			Facing::WEST => Facing::EAST,
-			Facing::EAST => Facing::WEST,
-			default => Facing::opposite($player?->getHorizontalFacing() ?? Facing::NORTH)
-		};*/
-		$this->facing = $player->getHorizontalFacing(); // Histeria: we are reversed to the reversed vanilla behavior
+		/*$this->facing = Facing::opposite(
+			($player instanceof Player ? $player->getHorizontalFacing() : $face)
+		);*/ // Histeria: we are reversed to the reversed vanilla behavior
 		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 

@@ -7,18 +7,29 @@ use pocketmine\nbt\tag\ShortTag;
 
 final class KineticWeaponComponent implements ItemComponent {
 
+	/** @var array The reach of the weapon in creative mode */
 	private array $creativeReach;
+	/** @var array The conditions that must be met for the weapon to deal damage */
+	private array $damageConditions;
+	/** @var float A flat modifier added to the damage dealt by the weapon */
 	private float $damageModifier;
+	/** @var float A multiplier applied to the damage dealt by the weapon */
 	private float $damageMultiplier;
+	/** @var int The delay between uses of the weapon, in ticks */
 	private int $delay;
+	/** @var array The conditions that must be met for the weapon to dismount entities */
 	private array $dismountConditions;
+	/** @var float The margin added to the hitbox of the weapon */
 	private float $hitboxMargin;
+	/** @var array The conditions that must be met for the weapon to apply knockback */
 	private array $knockbackConditions;
+	/** @var array The reach of the weapon in survival mode */
 	private array $reach;
 
 	/**
 	 * The kinetic weapon component defines the behavior of kinetic weapons, which deal damage based on their speed and other conditions.
 	 * @param array $creativeReach The reach of the weapon in creative mode
+	 * @param array $damageConditions Conditions that must be met for the weapon to deal damage
 	 * @param float $damageModifier A flat modifier added to the damage dealt by the weapon
 	 * @param float $damageMultiplier A multiplier applied to the damage dealt by the weapon
 	 * @param int $delay The delay between uses of the weapon, in ticks
@@ -28,32 +39,39 @@ final class KineticWeaponComponent implements ItemComponent {
 	 * @param array $reach The reach of the weapon in survival mode
 	 */
 	public function __construct(
-		array $creativeReach = ['min' => 2.0, 'max' => 7.5],
+		array $creativeReach = ['max' => 7.5, 'min' => 2.0],
+		array $damageConditions = [
+			'max_duration' => 300,
+			'min_relative_speed' => 4.6,
+			'min_speed' => 0.0
+		],
 		float $damageModifier = 0.0,
 		float $damageMultiplier = 0.7,
 		int $delay = 15,
 		array $dismountConditions = [
-			'min_speed' => 14.0,
+			'max_duration' => 100,
 			'min_relative_speed' => 0.0,
-			'max_duration' => 100
+			'min_speed' => 14.0
 		],
 		float $hitboxMargin = 0.25,
 		array $knockbackConditions = [
-			'min_speed' => 5.1,
+			'max_duration' => 130,
 			'min_relative_speed' => 0.0,
-			'max_duration' => 120
+			'min_speed' => 5.1
 		],
-		array $reach = ['min' => 2.0, 'max' => 4.5]
+		array $reach = ['max' => 4.5, 'min' => 2.0]
 	) {
 		$this->creativeReach = self::validateRange($creativeReach, 'creative_reach');
 		$this->reach = self::validateRange($reach, 'reach');
+		$this->damageConditions = self::validateConditions($damageConditions, 'damage_conditions');
+		$this->dismountConditions = self::validateConditions($dismountConditions, 'dismount_conditions');
+		$this->knockbackConditions = self::validateConditions($knockbackConditions, 'knockback_conditions');
 		$this->damageModifier = $damageModifier;
 		$this->damageMultiplier = $damageMultiplier;
 		$this->delay = $delay;
-		$this->dismountConditions = self::validateConditions($dismountConditions, 'dismount_conditions');
-		$this->knockbackConditions = self::validateConditions($knockbackConditions, 'knockback_conditions');
 		$this->hitboxMargin = $hitboxMargin;
 	}
+
 	public function getName(): string {
 		return 'minecraft:kinetic_weapon';
 	}
@@ -62,11 +80,12 @@ final class KineticWeaponComponent implements ItemComponent {
 		return [
 			"minecraft:kinetic_weapon" => [
 				"creative_reach" => self::rangeToArray($this->creativeReach),
-				"damage_modifier" => $this->damageModifier,
-				"damage_multiplier" => $this->damageMultiplier,
+				"damage_conditions" => self::conditionsToArray($this->damageConditions),
+				"damage_modifier" => (float) $this->damageModifier,
+				"damage_multiplier" => (float) $this->damageMultiplier,
 				"delay" => new ShortTag($this->delay),
 				"dismount_conditions" => self::conditionsToArray($this->dismountConditions),
-				"hitbox_margin" => $this->hitboxMargin,
+				"hitbox_margin" => (float) $this->hitboxMargin,
 				"knockback_conditions" => self::conditionsToArray($this->knockbackConditions),
 				"reach" => self::rangeToArray($this->reach),
 			]
@@ -78,40 +97,40 @@ final class KineticWeaponComponent implements ItemComponent {
 	}
 
 	private static function validateRange(array $range, string $name): array {
-		if(!isset($range['min'], $range['max'])){
+		if(!isset($range['max'], $range['min'])){
 			throw new \InvalidArgumentException("$name must contain min and max");
 		}
 		return [
-			'min' => (float) $range['min'],
-			'max' => (float) $range['max']
+			'max' => (float) $range['max'], // Float
+			'min' => (float) $range['min'] // Float
 		];
 	}
 
 	private static function validateConditions(array $conditions, string $name): array {
-		foreach(['min_speed', 'min_relative_speed', 'max_duration'] as $key){
+		foreach(['max_duration', 'min_relative_speed', 'min_speed'] as $key){
 			if(!array_key_exists($key, $conditions)){
 				throw new \InvalidArgumentException("$name missing $key");
 			}
 		}
 		return [
-			'min_speed' => (float) $conditions['min_speed'],
+			'max_duration' => (int) $conditions['max_duration'],
 			'min_relative_speed' => (float) $conditions['min_relative_speed'],
-			'max_duration' => (int) $conditions['max_duration']
+			'min_speed' => (float) $conditions['min_speed']
 		];
 	}
 
 	private static function rangeToArray(array $range): array {
 		return [
-			"min" => $range['min'],
-			"max" => $range['max']
+			"max" => (float) $range['max'], // Float
+			"min" => (float) $range['min'] // Float
 		];
 	}
 
 	private static function conditionsToArray(array $conditions): array {
 		return [
-			"min_speed" => $conditions['min_speed'],
-			"min_relative_speed" => $conditions['min_relative_speed'],
-			"max_duration" => new ShortTag($conditions['max_duration'])
+			"max_duration" => new ShortTag($conditions['max_duration']), // Short
+			"min_relative_speed" => (float) $conditions['min_relative_speed'], // Float
+			"min_speed" => (float) $conditions['min_speed'] // Float
 		];
 	}
 }
