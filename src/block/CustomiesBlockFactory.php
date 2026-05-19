@@ -6,6 +6,14 @@ namespace customiesdevs\customies\block;
 use Closure;
 use customiesdevs\customies\block\component\BlockComponents;
 use customiesdevs\customies\block\component\BlockTagsComponent;
+use customiesdevs\customies\block\component\DestructibleByExplosionComponent;
+use customiesdevs\customies\block\component\DestructibleByMiningComponent;
+use customiesdevs\customies\block\component\FlammableComponent;
+use customiesdevs\customies\block\component\FrictionComponent;
+use customiesdevs\customies\block\component\IndestructibleMiningComponent;
+use customiesdevs\customies\block\component\LightDampeningComponent;
+use customiesdevs\customies\block\component\LightEmissionComponent;
+use customiesdevs\customies\block\component\SelectionBoxComponent;
 use customiesdevs\customies\block\permutations\BlockPermutation;
 use customiesdevs\customies\block\permutations\BlockPermutations;
 use customiesdevs\customies\block\permutations\Permutations;
@@ -13,9 +21,11 @@ use customiesdevs\customies\item\CreativeInventoryInfo;
 use customiesdevs\customies\item\CustomiesItemFactory;
 use customiesdevs\customies\task\AsyncRegisterBlocksTask;
 use customiesdevs\customies\util\NBT;
+use GlobalLogger;
 use InvalidArgumentException;
 use minicore\blocks\decoration\CustomFlower;
 use minicore\blocks\register\InterfaceBlock;
+use minicore\MiniCore;
 use pocketmine\block\Block;
 use pocketmine\block\RuntimeBlockStateRegistry;
 use pocketmine\data\bedrock\block\BlockStateData;
@@ -124,22 +134,36 @@ final class CustomiesBlockFactory {
 		CustomiesItemFactory::getInstance()->registerBlockItem($identifier, $block);
 		$this->customBlocks[$identifier] = $block;
 
+		//From Histeria, wtf are components not by default
+		$components = [];
+		$components[] = new DestructibleByExplosionComponent();
+		if ($block->getBreakInfo()->getHardness() >= 0) //-1 for indestructible
+			$components[] = new DestructibleByMiningComponent($block->getBreakInfo()->getHardness());
+		$components[] = new LightEmissionComponent($block->getLightLevel());
+		$components[] = new LightDampeningComponent($block->getLightFilter());
+		$components[] = new FrictionComponent($block->getFrictionFactor());
+		$components[] = new SelectionBoxComponent();
+		if($block->getFlammability() > 0)
+			$components[] = new FlammableComponent($block->getFlameEncouragement());
+		//end of histeria
+
 		$nbtTag = CompoundTag::create();
 		$componentsTag = CompoundTag::create();
 		$blockTags = [];
 
 		// Adds Components to Block
-		if($block instanceof BlockComponents){
-			foreach($block->getComponents() as $component){
-				// Add BlockTags to array
-				if($component instanceof BlockTagsComponent){
-					$blockTags = $component->getValue();
-					continue;
-				}
-				$tag = NBT::getTagType($component->getValue()) ?? throw new RuntimeException("Failed to get tag type for component: " . $component->getName());
-				$componentsTag->setTag($component->getName(), $tag);
+		if($block instanceof BlockComponents) $components = array_merge($components, $block->getComponents());
+
+		foreach($components as $component){
+			// Add BlockTags to array
+			if($component instanceof BlockTagsComponent){
+				$blockTags = $component->getValue();
+				continue;
 			}
+			$tag = NBT::getTagType($component->getValue()) ?? throw new RuntimeException("Failed to get tag type for component: " . $component->getName());
+			$componentsTag->setTag($component->getName(), $tag);
 		}
+
         //The following is from Histeria
         // Merge external components registered for this identifier
         if(isset($this->externalComponents[$identifier])){
