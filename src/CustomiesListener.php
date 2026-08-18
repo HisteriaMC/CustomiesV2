@@ -6,6 +6,7 @@ namespace customiesdevs\customies;
 use customiesdevs\customies\block\CustomiesBlockFactory;
 use pocketmine\event\Listener;
 use pocketmine\event\server\DataPacketSendEvent;
+use pocketmine\network\mcpe\protocol\ResourcePacksInfoPacket;
 use pocketmine\network\mcpe\protocol\ResourcePackStackPacket;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
 use pocketmine\network\mcpe\protocol\types\BlockPaletteEntry;
@@ -29,7 +30,8 @@ final class CustomiesListener implements Listener {
 	}
 
 	public function onDataPacketSend(DataPacketSendEvent $event): void {
-		foreach($event->getPackets() as $packet){
+		$packets = $event->getPackets();
+		foreach($packets as $i => $packet){
 			if($packet instanceof StartGamePacket){
 				if(count($this->cachedBlockPalette) === 0){
 					// Wait for the data to be needed before it is actually cached. Allows for all blocks and items to be
@@ -40,7 +42,22 @@ final class CustomiesListener implements Listener {
 				$packet->blockPalette = $this->cachedBlockPalette;
 			}elseif($packet instanceof ResourcePackStackPacket) {
 				$packet->experiments = $this->experiments;
+			} elseif($packet instanceof ResourcePacksInfoPacket && $packet->isForceDisableVibrantVisuals()) {
+				unset($packets[$i]);
+				foreach ($event->getTargets() as $target) {
+					$target->sendDataPacket(ResourcePacksInfoPacket::create(
+						resourcePackEntries: $packet->resourcePackEntries,
+						mustAccept: $packet->mustAccept,
+						hasAddons: $packet->hasAddons,
+						hasScripts: $packet->hasScripts,
+						worldTemplateId: $packet->getWorldTemplateId(),
+						worldTemplateVersion: $packet->getWorldTemplateVersion(),
+						forceDisableVibrantVisuals: false //we want vibrant visuals to be enabled
+					));
+				}
 			}
 		}
+		if (empty($packets)) $event->cancel();
+		else $event->setPackets($packets);
 	}
 }
