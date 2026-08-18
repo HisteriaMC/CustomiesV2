@@ -1,0 +1,55 @@
+name: Deploy to Production Server
+
+on:
+  push:
+    branches:
+      - main
+      - master
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
+
+      - name: Sync repository to production
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_USERNAME: ${{ vars.SSH_USERNAME }}
+          HOST: ${{ vars.HOST }}
+          SSH_PORT: ${{ vars.SSH_PORT }}
+          DIRECTORY: ${{ vars.DIRECTORY }}
+          CONFIGS_DIR: ${{ vars.CONFIGS_DIR }}
+        run: |
+          # Print all variables
+          echo "SSH_USERNAME: $SSH_USERNAME"
+          echo "HOST: $HOST"
+          echo "SSH_PORT: $SSH_PORT"
+          echo "DIRECTORY: $DIRECTORY"
+
+          # Start the SSH agent
+          eval "$(ssh-agent -s)"
+
+          # Save the SSH key in a secure temporary file
+          SSH_KEY_FILE=$(mktemp)
+          echo "${SSH_PRIVATE_KEY}" > "${SSH_KEY_FILE}"
+          chmod 600 "${SSH_KEY_FILE}"
+
+          # Load the private key into ssh-agent
+          ssh-add "${SSH_KEY_FILE}"
+
+          #Mtu is broken since wireguard
+          sudo ip li set mtu 1400 dev eth0
+
+          # Perform the rsync operation
+          rsync -avz --delete --exclude='.git/' -e "ssh -o StrictHostKeyChecking=no -p $SSH_PORT" ./ $SSH_USERNAME@$HOST:$DIRECTORY/CustomiesV2
+
+          # Trigger the upload.sh script in distant server like that `upload.sh plugins CustomiesV2`
+          ssh -p $SSH_PORT $SSH_USERNAME@$HOST "cd $DIRECTORY && ./upload.sh plugins CustomiesV2"
+
+          # Kill the SSH agent and remove the temporary file containing the SSH key
+          ssh-agent -k
+          if [ -f "$SSH_KEY_FILE" ]; then rm -f "$SSH_KEY_FILE"; fi
