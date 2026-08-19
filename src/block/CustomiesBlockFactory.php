@@ -141,7 +141,9 @@ final class CustomiesBlockFactory {
 			$components[] = new DestructibleByMiningComponent($block->getBreakInfo()->getHardness());
 		$components[] = new LightEmissionComponent($block->getLightLevel());
 		$components[] = new LightDampeningComponent($block->getLightFilter());
-		$components[] = new FrictionComponent($block->getFrictionFactor());
+		if ($block->getFrictionFactor() === 0.6) $friction = 0.4; //default pm is 0.6 but default vanilal is 0.4
+		else $friction = $block->getFrictionFactor();
+		$components[] = new FrictionComponent($friction);
 		$components[] = new SelectionBoxComponent();
 		if($block->getFlammability() > 0)
 			$components[] = new FlammableComponent($block->getFlameEncouragement());
