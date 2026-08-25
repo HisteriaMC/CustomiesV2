@@ -27,7 +27,9 @@ use minicore\blocks\decoration\CustomFlower;
 use minicore\blocks\register\InterfaceBlock;
 use minicore\MiniCore;
 use pocketmine\block\Block;
+use pocketmine\block\BlockToolType;
 use pocketmine\block\RuntimeBlockStateRegistry;
+use pocketmine\item\ToolTier;
 use pocketmine\data\bedrock\block\BlockStateData;
 use pocketmine\data\bedrock\block\convert\BlockStateReader;
 use pocketmine\data\bedrock\block\convert\BlockStateWriter;
@@ -147,6 +149,9 @@ final class CustomiesBlockFactory {
 		$components[] = new SelectionBoxComponent();
 		if($block->getFlammability() > 0)
 			$components[] = new FlammableComponent($block->getFlameEncouragement());
+		$autoMiningTags = self::getMiningBlockTags($block);
+		if($autoMiningTags !== [])
+			$components[] = new BlockTagsComponent($autoMiningTags);
 		//end of histeria
 
 		$nbtTag = CompoundTag::create();
@@ -157,9 +162,9 @@ final class CustomiesBlockFactory {
 		if($block instanceof BlockComponents) $components = array_merge($components, $block->getComponents());
 
 		foreach($components as $component){
-			// Add BlockTags to array
+			// Merge BlockTags (auto + any from the block) into one list
 			if($component instanceof BlockTagsComponent){
-				$blockTags = $component->getValue();
+				$blockTags = array_values(array_unique([...$blockTags, ...$component->getValue()]));
 				continue;
 			}
 			$tag = NBT::getTagType($component->getValue()) ?? throw new RuntimeException("Failed to get tag type for component: " . $component->getName());
@@ -270,5 +275,46 @@ final class CustomiesBlockFactory {
 			$root->setTag("vanilla_block_data", CompoundTag::create()->setInt("block_id", 10000 + $i));
 			$this->blockPaletteEntries[$i] = new BlockPaletteEntry($entry->getName(), new CacheableNbt($root));
 		}
+	}
+
+	/**
+	 * Bedrock tool tags derived from PocketMine BlockBreakInfo so vanilla tools apply dig speed.
+	 * @return string[]
+	 */
+	private static function getMiningBlockTags(Block $block): array {
+		$breakInfo = $block->getBreakInfo();
+		if($breakInfo->getHardness() < 0){
+			return [];
+		}
+
+		$toolType = $breakInfo->getToolType();
+		if($toolType === BlockToolType::NONE){
+			return [];
+		}
+
+		$tags = [];
+		if(($toolType & BlockToolType::PICKAXE) !== 0){
+			$tags[] = "minecraft:is_pickaxe_item_destructible";
+		}
+		if(($toolType & BlockToolType::AXE) !== 0){
+			$tags[] = "minecraft:is_axe_item_destructible";
+		}
+		if(($toolType & BlockToolType::SHOVEL) !== 0){
+			$tags[] = "minecraft:is_shovel_item_destructible";
+		}
+		if(($toolType & BlockToolType::HOE) !== 0){
+			$tags[] = "minecraft:is_hoe_item_destructible";
+		}
+
+		$harvestLevel = $breakInfo->getToolHarvestLevel();
+		if($harvestLevel >= ToolTier::DIAMOND()->getHarvestLevel()){
+			$tags[] = "minecraft:diamond_tier_destructible";
+		}elseif($harvestLevel >= ToolTier::IRON()->getHarvestLevel()){
+			$tags[] = "minecraft:iron_tier_destructible";
+		}elseif($harvestLevel >= ToolTier::STONE()->getHarvestLevel()){
+			$tags[] = "minecraft:stone_tier_destructible";
+		}
+
+		return $tags;
 	}
 }

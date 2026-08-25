@@ -6,7 +6,7 @@ use pocketmine\nbt\tag\ShortTag;
 
 final class DestructibleByMiningComponent implements BlockComponent {
 
-	/** Seconds to destroy with base equipment */
+	/** Block hardness (Bedrock misnames this as seconds_to_destroy) */
 	private float $secondsToDestroy;
 	/**
 	 * @var array<int, array{
@@ -21,7 +21,9 @@ final class DestructibleByMiningComponent implements BlockComponent {
 
 	/**
 	 * Describes the destructible by mining properties for this block.
-	 * @param float $secondsToDestroy Sets the number of seconds it takes to destroy the block with base equipment. Greater numbers result in greater mining times.
+	 * @param float $secondsToDestroy Hardness value sent to the client (Bedrock field name is misleading;
+	 *        greater numbers result in greater mining times). Actual dig time is roughly 1.5×hardness / tool efficiency
+	 *        when the correct tool tag is present.
 	 */
 	public function __construct(float $secondsToDestroy = 0.0) {
 		if($secondsToDestroy < 0){
