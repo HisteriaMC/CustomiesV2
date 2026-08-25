@@ -9,8 +9,6 @@ use customiesdevs\customies\block\permutations\BlockPermutationsTrait;
 use customiesdevs\customies\block\states\BlockState;
 use minicore\MiniCore;
 use pocketmine\block\Block;
-use pocketmine\block\utils\HorizontalFacingTrait;
-use pocketmine\block\utils\FacesOppositePlacingPlayerTrait;
 use pocketmine\data\bedrock\block\BlockStateDeserializeException;
 use pocketmine\data\bedrock\block\convert\BlockStateReader;
 use pocketmine\data\bedrock\block\convert\BlockStateWriter;
@@ -24,10 +22,13 @@ use pocketmine\world\BlockTransaction;
  * Trait for blocks that face horizontally (4 cardinal directions).
  * Used by carved pumpkins and furnaces
  * 4 directions - 'north', 'south', 'east' and 'west'.
+ *
+ * Consumers must provide $facing (e.g. via HorizontalFacingTrait).
+ * Unlike vanilla FacesOppositePlacingPlayerTrait, the block faces the same
+ * way as the placing player (front toward the direction the player looks).
  */
 trait CardinalDirectionRotationTrait {
 	use BlockPermutationsTrait;
-	//use HorizontalFacingTrait; Histeria: we are reversed to the reversed vanilla behavior
 
 	protected function initStates(): void {
 		$this->addState(new BlockState("minecraft:cardinal_direction",
@@ -61,9 +62,9 @@ trait CardinalDirectionRotationTrait {
 	}
 
 	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null): bool {
-		/*$this->facing = Facing::opposite(
-			($player instanceof Player ? $player->getHorizontalFacing() : $face)
-		);*/ // Histeria: we are reversed to the reversed vanilla behavior
+		if($player !== null){
+			$this->facing = $player->getHorizontalFacing();
+		}
 		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 
