@@ -11,6 +11,7 @@ use pocketmine\network\mcpe\protocol\ResourcePackStackPacket;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
 use pocketmine\network\mcpe\protocol\types\BlockPaletteEntry;
 use pocketmine\network\mcpe\protocol\types\Experiments;
+use function array_merge;
 use function count;
 
 final class CustomiesListener implements Listener {
@@ -39,7 +40,13 @@ final class CustomiesListener implements Listener {
 					$this->cachedBlockPalette = CustomiesBlockFactory::getInstance()->getBlockPaletteEntries();
 				}
 				$packet->levelSettings->experiments = $this->experiments;
-				$packet->blockPalette = $this->cachedBlockPalette;
+				// Since 1.26.50, PocketMine populates StartGamePacket::$blockPalette itself with the 98 vanilla
+				// data-driven blocks loaded from BedrockData's data_driven_blocks.nbt. Overwriting the array would
+				// strip them from the client, which then builds a block palette that is missing those names while the
+				// server's BlockStateDictionary still contains their states. Because network block runtime IDs are
+				// plain indices into the sorted palette, that offsets every state after the first missing name and the
+				// entire block list ends up corrupted client-side. Append instead of replacing.
+				$packet->blockPalette = array_merge($packet->blockPalette, $this->cachedBlockPalette);
 			}elseif($packet instanceof ResourcePackStackPacket) {
 				$packet->experiments = $this->experiments;
 			} elseif($packet instanceof ResourcePacksInfoPacket && $packet->isForceDisableVibrantVisuals()) {
