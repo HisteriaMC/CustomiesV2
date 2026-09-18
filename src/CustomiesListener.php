@@ -6,6 +6,7 @@ namespace customiesdevs\customies;
 use customiesdevs\customies\block\CustomiesBlockFactory;
 use pocketmine\event\Listener;
 use pocketmine\event\server\DataPacketSendEvent;
+use pocketmine\network\mcpe\cache\StaticPacketCache;
 use pocketmine\network\mcpe\protocol\ResourcePacksInfoPacket;
 use pocketmine\network\mcpe\protocol\ResourcePackStackPacket;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
@@ -13,6 +14,9 @@ use pocketmine\network\mcpe\protocol\types\BlockPaletteEntry;
 use pocketmine\network\mcpe\protocol\types\Experiments;
 use function array_merge;
 use function count;
+use function hash;
+use function strcmp;
+use function usort;
 
 final class CustomiesListener implements Listener {
 
@@ -37,16 +41,23 @@ final class CustomiesListener implements Listener {
 				if(count($this->cachedBlockPalette) === 0){
 					// Wait for the data to be needed before it is actually cached. Allows for all blocks and items to be
 					// registered before they are cached for the rest of the runtime.
-					$this->cachedBlockPalette = CustomiesBlockFactory::getInstance()->getBlockPaletteEntries();
+					// Since 1.26.50 the vanilla data-driven blocks (double slabs etc.) are sent in this palette too, so
+					// they have to be merged in: dropping them would leave the client's palette missing those names
+					// while the server's BlockStateDictionary still has their states, shifting every network block
+					// runtime ID that comes after them.
+					$merged = array_merge(
+						StaticPacketCache::getInstance()->getBlockPaletteEntries(),
+						CustomiesBlockFactory::getInstance()->getBlockPaletteEntries()
+					);
+					// 1.20.60 added a new "block_id" field which depends on the order of the block palette entries, so
+					// the whole merged list has to be sorted the way the client sorts it.
+					usort($merged, static function(BlockPaletteEntry $a, BlockPaletteEntry $b): int {
+						return strcmp(hash("fnv164", $a->getName()), hash("fnv164", $b->getName()));
+					});
+					$this->cachedBlockPalette = $merged;
 				}
 				$packet->levelSettings->experiments = $this->experiments;
-				// Since 1.26.50, PocketMine populates StartGamePacket::$blockPalette itself with the 98 vanilla
-				// data-driven blocks loaded from BedrockData's data_driven_blocks.nbt. Overwriting the array would
-				// strip them from the client, which then builds a block palette that is missing those names while the
-				// server's BlockStateDictionary still contains their states. Because network block runtime IDs are
-				// plain indices into the sorted palette, that offsets every state after the first missing name and the
-				// entire block list ends up corrupted client-side. Append instead of replacing.
-				$packet->blockPalette = array_merge($packet->blockPalette, $this->cachedBlockPalette);
+				$packet->blockPalette = $this->cachedBlockPalette;
 			}elseif($packet instanceof ResourcePackStackPacket) {
 				$packet->experiments = $this->experiments;
 			} elseif($packet instanceof ResourcePacksInfoPacket && $packet->isForceDisableVibrantVisuals()) {
